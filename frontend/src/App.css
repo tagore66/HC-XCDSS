@@ -158,7 +158,39 @@ body.theme-app-authenticated::-webkit-scrollbar-thumb,
 html:has(.app-authenticated-mode)::-webkit-scrollbar-thumb,
 body:has(.app-authenticated-mode)::-webkit-scrollbar-thumb {
   background: #CBD5E1;
-  border: 1px solid var(--surface-secondary);
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   AUTH SESSION LOADING SCREEN
+   ========================================================================== */
+.auth-loading-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background-color: var(--bg-app, #F8FAFC);
+  color: var(--text-secondary, #334155);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.auth-loading-screen .spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(13, 148, 136, 0.2);
+  border-top-color: var(--accent-primary, #0D9488);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 html.theme-app-authenticated::-webkit-scrollbar-thumb:hover,

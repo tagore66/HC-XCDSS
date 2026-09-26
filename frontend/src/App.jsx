@@ -577,15 +577,6 @@ function App() {
     });
   };
 
-  if (authChecking && getAuthToken()) {
-    return (
-      <div className="auth-loading-screen">
-        <div className="spinner"></div>
-        <p>Verifying secure session...</p>
-      </div>
-    );
-  }
-
   const isGuestLanding = !currentUser && (!getAuthToken() || !authChecking);
 
   useEffect(() => {
@@ -601,6 +592,15 @@ function App() {
       document.body.classList.add("theme-app-authenticated");
     }
   }, [isGuestLanding]);
+
+  if (authChecking && getAuthToken()) {
+    return (
+      <div className="auth-loading-screen">
+        <div className="spinner"></div>
+        <p>Verifying secure session...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={`app ${isGuestLanding ? "app-guest-mode" : "app-authenticated-mode"}`}>
