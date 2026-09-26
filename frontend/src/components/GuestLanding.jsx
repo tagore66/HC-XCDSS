@@ -186,27 +186,52 @@ export default function GuestLanding({ onOpenAuth, currentUser }) {
   // Signature Sequence Step (0 to 5)
   const [signatureStep, setSignatureStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isInView, setIsInView] = useState(false);
 
   // Manual Grad-CAM Opacity Override (null when following step default)
   const [manualOpacity, setManualOpacity] = useState(null);
 
   // Background canvas animation ref
   const canvasRef = useRef(null);
+  const signatureSectionRef = useRef(null);
 
   const handleIntroComplete = useCallback(() => {
     hasPlayedIntroInSpaRuntime = true;
     setShowIntro(false);
   }, []);
 
-  // Continuous Autoplay Timer for Signature Transformation Sequence (runs only when intro is not displaying)
+  // Viewport Intersection Observer: Play/Resume demo only when user scrolls into view
   useEffect(() => {
-    if (!isPlaying || showIntro) return;
+    const el = signatureSectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setIsInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      {
+        threshold: 0.25, // Starts/resumes when 25% of the demo section is visible in viewport
+      }
+    );
+
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  // Continuous Autoplay Timer for Signature Transformation Sequence (runs ONLY when in viewport and not paused)
+  useEffect(() => {
+    if (!isPlaying || showIntro || !isInView) return;
     const interval = setInterval(() => {
       setSignatureStep((prev) => (prev + 1) % signatureSteps.length);
     }, 3800);
 
     return () => clearInterval(interval);
-  }, [isPlaying, showIntro]);
+  }, [isPlaying, showIntro, isInView]);
 
   const activePhase = signatureSteps[signatureStep] || signatureSteps[0];
   const effectiveCamOpacity =
@@ -732,6 +757,7 @@ export default function GuestLanding({ onOpenAuth, currentUser }) {
         {/* 3. SIGNATURE EXPERIENCE: HOW HC-XCDSS SEES (CONTINUOUS TRANSFORMATION STORY) */}
         <section
           id="signature-transformation"
+          ref={signatureSectionRef}
           className="gl-section gl-signature-section"
         >
           <div className="gl-showcase-inner">
