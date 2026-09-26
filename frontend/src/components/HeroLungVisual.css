@@ -151,62 +151,6 @@
   transition: opacity 300ms ease;
 }
 
-/* Subtle Understated Status Tag */
-.hero-lung-caption {
-  margin-top: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: rgba(8, 17, 24, 0.7);
-  border: 1px solid rgba(45, 212, 191, 0.16);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-  z-index: 2;
-  opacity: 0.85;
-  transition: opacity 250ms ease, border-color 250ms ease;
-}
-
-.hero-lung-scanning .hero-lung-caption {
-  opacity: 1;
-  border-color: rgba(45, 212, 191, 0.4);
-  box-shadow: 0 0 16px rgba(20, 184, 166, 0.25);
-}
-
-.lung-caption-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background-color: var(--gl-teal, #14B8A6);
-  box-shadow: 0 0 6px var(--gl-teal, #14B8A6);
-  animation: pulseDot 2.2s infinite;
-}
-
-@keyframes pulseDot {
-  0%, 100% {
-    opacity: 0.6;
-    transform: scale(0.85);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.15);
-  }
-}
-
-.lung-caption-text {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #94A3B8;
-  font-family: monospace, -apple-system, sans-serif;
-}
-
-.hero-lung-scanning .lung-caption-text {
-  color: #5EEAD4;
-}
-
 /* ==========================================================================
    PREFERS REDUCED MOTION (Calm Static Medical Silhouette)
    ========================================================================== */
@@ -214,8 +158,7 @@
   .hero-lung-pair-group,
   .hero-lung-radiance,
   .lung-heatmap-glow-left,
-  .lung-heatmap-glow-right,
-  .lung-caption-dot {
+  .lung-heatmap-glow-right {
     animation: none !important;
   }
 

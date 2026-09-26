@@ -486,12 +486,6 @@ export default function HeroLungVisual({ isScanning = false }) {
           </g>
         </g>
       </svg>
-
-      {/* Subtle Live Medical Status Tag Underneath */}
-      <div className="hero-lung-caption">
-        <span className="lung-caption-dot" />
-        <span className="lung-caption-text">PA CLINICAL FIELD • ATTENTION ENGAGED</span>
-      </div>
     </div>
   );
 }
