@@ -2,56 +2,55 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import "./HeroLungVisual.css";
 
 /**
- * HC-XCDSS Premium Living Medical-Tech Lung Visualization
+ * HC-XCDSS Cinematic Radiology Lung Visualization
  * 
- * Features:
- * - Two stylized anatomical lung lobes with subtle, sophisticated personified eyes.
- * - Smooth GPU-accelerated cursor tracking with independent pupil gaze and binocular convergence.
- * - Organic breathing cycle with subtle chest expansion.
- * - Internal radiographic / Grad-CAM visual attention glow.
- * - Natural autonomous blink cycle.
- * - Subtle 3D parallax tilt reactive to cursor distance.
- * - Interactive focus reaction when user hovers over the primary call to action.
- * - Full prefers-reduced-motion compliance.
+ * Aesthetic Philosophy:
+ * - High-end clinical AI / Radiographic imaging fidelity.
+ * - Authentic anatomical asymmetry (3-lobed right lung, 2-lobed left lung with cardiac notch & lingula).
+ * - Layered radiopacity: faint posterior ribs, tracheobronchial arborization, pulmonary vasculature.
+ * - Subtle organic living presence: micro-saccadic eye tracking, natural autonomous blinks,
+ *   slow non-linear diaphragmatic respiration, and shifting Grad-CAM attention regions.
+ * - Zero cartoon/kawaii attributes: sophisticated, discrete, and medically grounded.
  */
 export default function HeroLungVisual({ isScanning = false }) {
   const containerRef = useRef(null);
   const leftEyeRef = useRef(null);
   const rightEyeRef = useRef(null);
 
-  // Pupil smooth position state (lerped in rAF)
+  // Smooth pupil & parallax positions
   const [leftPupilPos, setLeftPupilPos] = useState({ x: 0, y: 0 });
   const [rightPupilPos, setRightPupilPos] = useState({ x: 0, y: 0 });
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [isBlinking, setIsBlinking] = useState(false);
 
   // Internal animation state refs
-  const mouseRef = useRef({ x: window.innerWidth * 0.7, y: window.innerHeight * 0.35 });
+  const mouseRef = useRef({ x: typeof window !== "undefined" ? window.innerWidth * 0.68 : 800, y: typeof window !== "undefined" ? window.innerHeight * 0.38 : 350 });
   const currentLeftPos = useRef({ x: 0, y: 0 });
   const currentRightPos = useRef({ x: 0, y: 0 });
   const currentTilt = useRef({ x: 0, y: 0 });
   const targetTilt = useRef({ x: 0, y: 0 });
   const animFrameRef = useRef(null);
   const blinkTimerRef = useRef(null);
+  const timeRef = useRef(0);
 
-  // Autonomous natural blinking effect (random interval 3.8s - 6.5s)
+  // Autonomous natural organic blinking (randomized 3.6s – 6.8s)
   const triggerBlink = useCallback(() => {
     setIsBlinking(true);
     setTimeout(() => {
       setIsBlinking(false);
-      const nextDelay = 3500 + Math.random() * 3000;
+      const nextDelay = 3400 + Math.random() * 3200;
       blinkTimerRef.current = setTimeout(triggerBlink, nextDelay);
-    }, 180);
+    }, 160);
   }, []);
 
   useEffect(() => {
-    blinkTimerRef.current = setTimeout(triggerBlink, 3800);
+    blinkTimerRef.current = setTimeout(triggerBlink, 3600);
     return () => {
       if (blinkTimerRef.current) clearTimeout(blinkTimerRef.current);
     };
   }, [triggerBlink]);
 
-  // Pointer move handler
+  // Pointer movement tracking
   useEffect(() => {
     const handlePointerMove = (e) => {
       mouseRef.current = { x: e.clientX, y: e.clientY };
@@ -61,12 +60,12 @@ export default function HeroLungVisual({ isScanning = false }) {
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
 
-      // Calculate subtle 3D tilt
+      // Subtle 3D card tilt
       const dx = (e.clientX - centerX) / (window.innerWidth / 2);
       const dy = (e.clientY - centerY) / (window.innerHeight / 2);
       targetTilt.current = {
-        x: Math.max(-6, Math.min(6, -dy * 5)),
-        y: Math.max(-8, Math.min(8, dx * 7)),
+        x: Math.max(-4.5, Math.min(4.5, -dy * 4)),
+        y: Math.max(-6.5, Math.min(6.5, dx * 5.5)),
       };
     };
 
@@ -76,12 +75,15 @@ export default function HeroLungVisual({ isScanning = false }) {
     };
   }, []);
 
-  // Main animation loop for smooth eye tracking and parallax lerping
+  // Main 60fps animation loop with micro-saccades and smooth interpolation
   useEffect(() => {
-    const maxRadius = 7.5; // Max pupil travel distance within socket (px)
-    const lerpFactor = 0.12; // Easing speed
+    const maxRadius = 5.2; // Sophisticated, restrained pupil travel radius (px)
+    const lerpFactor = 0.095; // Fluid natural gaze easing
 
     const animate = () => {
+      timeRef.current += 0.016;
+      const t = timeRef.current;
+
       if (!leftEyeRef.current || !rightEyeRef.current || !containerRef.current) {
         animFrameRef.current = requestAnimationFrame(animate);
         return;
@@ -100,11 +102,11 @@ export default function HeroLungVisual({ isScanning = false }) {
         y: rightRect.top + rightRect.height / 2,
       };
 
-      // Calculate target pupil offsets
-      const calcPupilOffset = (center) => {
+      // Calculate independent gaze targets with organic micro-saccades
+      const calcGazeOffset = (center, isLeft) => {
         if (isScanning) {
-          // When scanning / button hovered, gently focus forward-downward
-          return { x: 0, y: 3.5 };
+          // When scanning or CTA button hovered: focused downward-inward gaze
+          return { x: isLeft ? 1.4 : -1.4, y: 2.8 };
         }
 
         const dx = mouseRef.current.x - center.x;
@@ -114,18 +116,21 @@ export default function HeroLungVisual({ isScanning = false }) {
         if (dist < 1) return { x: 0, y: 0 };
 
         const angle = Math.atan2(dy, dx);
-        // Distance scaling with smooth saturation
-        const intensity = Math.min(1, dist / 400);
+        const intensity = Math.min(1, dist / 420);
         const radius = intensity * maxRadius;
 
+        // Subtle biological micro-saccadic drift (imperceptible lifelike oscillation)
+        const microX = Math.sin(t * 1.8 + (isLeft ? 0 : 1.2)) * 0.35;
+        const microY = Math.cos(t * 2.1 + (isLeft ? 0.8 : 0)) * 0.28;
+
         return {
-          x: Math.cos(angle) * radius,
-          y: Math.sin(angle) * radius,
+          x: Math.cos(angle) * radius + microX,
+          y: Math.sin(angle) * radius + microY,
         };
       };
 
-      const targetLeft = calcPupilOffset(leftCenter);
-      const targetRight = calcPupilOffset(rightCenter);
+      const targetLeft = calcGazeOffset(leftCenter, true);
+      const targetRight = calcGazeOffset(rightCenter, false);
 
       // Smooth interpolation (lerp)
       currentLeftPos.current.x += (targetLeft.x - currentLeftPos.current.x) * lerpFactor;
@@ -134,8 +139,8 @@ export default function HeroLungVisual({ isScanning = false }) {
       currentRightPos.current.x += (targetRight.x - currentRightPos.current.x) * lerpFactor;
       currentRightPos.current.y += (targetRight.y - currentRightPos.current.y) * lerpFactor;
 
-      currentTilt.current.x += (targetTilt.current.x - currentTilt.current.x) * 0.08;
-      currentTilt.current.y += (targetTilt.current.y - currentTilt.current.y) * 0.08;
+      currentTilt.current.x += (targetTilt.current.x - currentTilt.current.x) * 0.06;
+      currentTilt.current.y += (targetTilt.current.y - currentTilt.current.y) * 0.06;
 
       setLeftPupilPos({ ...currentLeftPos.current });
       setRightPupilPos({ ...currentRightPos.current });
@@ -156,333 +161,336 @@ export default function HeroLungVisual({ isScanning = false }) {
       ref={containerRef}
       className={`hero-lung-container ${isScanning ? "hero-lung-scanning" : ""}`}
       style={{
-        transform: `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+        transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
       }}
       aria-hidden="true"
     >
-      {/* Ambient Diagnostic Radiance Aura */}
+      {/* Deep Radiographic Volumetric Ambient Aura */}
       <div className="hero-lung-radiance" />
 
-      {/* Main Medical-Tech SVG Canvas */}
+      {/* Main High-Fidelity Radiographic Canvas */}
       <svg
         className="hero-lung-svg"
-        viewBox="0 0 520 440"
+        viewBox="0 0 540 460"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
-          {/* Radiographic Lung Cavity Gradient */}
-          <linearGradient id="lungCavityGradLeft" x1="160" y1="60" x2="60" y2="380" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#122530" stopOpacity="0.92" />
-            <stop offset="45%" stopColor="#0B1B24" stopOpacity="0.85" />
-            <stop offset="85%" stopColor="#08141C" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="#050C12" stopOpacity="0.98" />
+          {/* Subtle Radiographic Grain / Parenchymal Noise */}
+          <filter id="radGrain" x="0%" y="0%" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="3" result="noise" />
+            <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.04 0" />
+            <feComposite in2="SourceGraphic" in="glare" operator="in" />
+          </filter>
+
+          {/* Radiographic Bloom Filter */}
+          <filter id="radiographicSoftGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          <filter id="hilarVascularBlur" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="1.8" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          {/* Right Lung (Viewer Left): Volumetric 3-Lobe Radiographic Density */}
+          <linearGradient id="radRightLungGrad" x1="160" y1="40" x2="60" y2="400" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#142B36" stopOpacity="0.88" />
+            <stop offset="35%" stopColor="#0E202B" stopOpacity="0.82" />
+            <stop offset="70%" stopColor="#091720" stopOpacity="0.90" />
+            <stop offset="100%" stopColor="#050E14" stopOpacity="0.96" />
           </linearGradient>
 
-          <linearGradient id="lungCavityGradRight" x1="360" y1="60" x2="460" y2="380" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#122530" stopOpacity="0.92" />
-            <stop offset="45%" stopColor="#0B1B24" stopOpacity="0.85" />
-            <stop offset="85%" stopColor="#08141C" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="#050C12" stopOpacity="0.98" />
+          {/* Left Lung (Viewer Right): Cardiac Notch & Lingula Radiographic Density */}
+          <linearGradient id="radLeftLungGrad" x1="380" y1="40" x2="480" y2="400" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#142B36" stopOpacity="0.88" />
+            <stop offset="35%" stopColor="#0E202B" stopOpacity="0.82" />
+            <stop offset="65%" stopColor="#0A1822" stopOpacity="0.90" />
+            <stop offset="100%" stopColor="#050E14" stopOpacity="0.96" />
           </linearGradient>
 
-          {/* Radiographic Edge Contour Gradient */}
-          <linearGradient id="lungEdgeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#2DD4BF" stopOpacity="0.6" />
-            <stop offset="35%" stopColor="#14B8A6" stopOpacity="0.35" />
-            <stop offset="70%" stopColor="#0D9488" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#042F2E" stopOpacity="0.4" />
+          {/* Radiographic Pleural Reflection Edge Highlight */}
+          <linearGradient id="pleuraEdgeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#5EEAD4" stopOpacity="0.45" />
+            <stop offset="30%" stopColor="#14B8A6" stopOpacity="0.28" />
+            <stop offset="75%" stopColor="#0D9488" stopOpacity="0.14" />
+            <stop offset="100%" stopColor="#083344" stopOpacity="0.30" />
           </linearGradient>
 
-          {/* Grad-CAM Internal Heatmap Glow - Left Lobe */}
-          <radialGradient id="camGlowLeft" cx="45%" cy="58%" r="42%">
-            <stop offset="0%" stopColor="#14B8A6" stopOpacity="0.38" />
-            <stop offset="55%" stopColor="#0D9488" stopOpacity="0.16" />
+          {/* Internal Grad-CAM Neural Attention Fields */}
+          <radialGradient id="gradcamRightLobe" cx="42%" cy="62%" r="48%">
+            <stop offset="0%" stopColor="#14B8A6" stopOpacity="0.32" />
+            <stop offset="45%" stopColor="#0D9488" stopOpacity="0.14" />
+            <stop offset="80%" stopColor="#F59E0B" stopOpacity="0.06" />
             <stop offset="100%" stopColor="#0D9488" stopOpacity="0" />
           </radialGradient>
 
-          {/* Grad-CAM Internal Heatmap Glow - Right Lobe (Cardiac & Basilar Focus) */}
-          <radialGradient id="camGlowRight" cx="55%" cy="62%" r="45%">
-            <stop offset="0%" stopColor="#2DD4BF" stopOpacity="0.35" />
-            <stop offset="50%" stopColor="#0D9488" stopOpacity="0.14" />
-            <stop offset="85%" stopColor="#F59E0B" stopOpacity="0.08" />
+          <radialGradient id="gradcamLeftLobe" cx="58%" cy="58%" r="46%">
+            <stop offset="0%" stopColor="#2DD4BF" stopOpacity="0.30" />
+            <stop offset="50%" stopColor="#0D9488" stopOpacity="0.12" />
             <stop offset="100%" stopColor="#0D9488" stopOpacity="0" />
           </radialGradient>
 
-          {/* Eye Diagnostic Lens Rim */}
-          <linearGradient id="eyeRimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#2DD4BF" stopOpacity="0.75" />
-            <stop offset="100%" stopColor="#0F766E" stopOpacity="0.3" />
+          {/* Subtle Ocular Lens Gradients */}
+          <linearGradient id="ocularLensBezel" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#2DD4BF" stopOpacity="0.65" />
+            <stop offset="100%" stopColor="#0F766E" stopOpacity="0.25" />
           </linearGradient>
 
-          {/* Sclera Internal Depth */}
-          <radialGradient id="scleraGrad" cx="50%" cy="45%" r="55%">
-            <stop offset="0%" stopColor="#102A36" />
-            <stop offset="80%" stopColor="#08151D" />
-            <stop offset="100%" stopColor="#040B0F" />
+          <radialGradient id="ocularChamberGrad" cx="50%" cy="42%" r="56%">
+            <stop offset="0%" stopColor="#0F2834" />
+            <stop offset="75%" stopColor="#07141C" />
+            <stop offset="100%" stopColor="#02080D" />
           </radialGradient>
 
-          {/* Iris Glow Gradient */}
-          <radialGradient id="irisGrad" cx="40%" cy="40%" r="60%">
+          <radialGradient id="ocularIrisGrad" cx="38%" cy="38%" r="62%">
             <stop offset="0%" stopColor="#5EEAD4" />
-            <stop offset="50%" stopColor="#14B8A6" />
-            <stop offset="90%" stopColor="#0F766E" />
+            <stop offset="45%" stopColor="#14B8A6" />
+            <stop offset="85%" stopColor="#0D9488" />
             <stop offset="100%" stopColor="#042F2E" />
           </radialGradient>
 
-          {/* Glow Filters */}
-          <filter id="radiographicBloom" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-
-          <filter id="softVascularGlow" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
+          {/* Scanning Beam Sweep Gradient */}
+          <linearGradient id="radScanSweepGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="transparent" />
+            <stop offset="50%" stopColor="rgba(45, 212, 191, 0.22)" />
+            <stop offset="100%" stopColor="transparent" />
+          </linearGradient>
         </defs>
 
-        {/* ------------------------------------------------------------ */}
-        {/* TRACHEA & PRIMARY BRONCHIAL HILUM (Central Medical Backbone) */}
-        {/* ------------------------------------------------------------ */}
-        <g className="lung-trachea-group" opacity="0.75">
-          {/* Trachea Cylinder Rings */}
-          <path
-            d="M 248 18 L 272 18 L 270 78 L 250 78 Z"
-            fill="url(#lungCavityGradLeft)"
-            stroke="url(#lungEdgeGrad)"
-            strokeWidth="1.6"
-          />
-          <line x1="249" y1="32" x2="271" y2="32" stroke="rgba(45, 212, 191, 0.3)" strokeWidth="1.2" />
-          <line x1="249" y1="46" x2="271" y2="46" stroke="rgba(45, 212, 191, 0.3)" strokeWidth="1.2" />
-          <line x1="249" y1="60" x2="271" y2="60" stroke="rgba(45, 212, 191, 0.3)" strokeWidth="1.2" />
-          <line x1="250" y1="74" x2="270" y2="74" stroke="rgba(45, 212, 191, 0.3)" strokeWidth="1.2" />
+        {/* ------------------------------------------------------------------ */}
+        {/* 1. FAINT THORACIC SKELETAL FRAMEWORK (Posterior & Anterior Ribs)    */}
+        {/* ------------------------------------------------------------------ */}
+        <g className="thoracic-rib-cage" opacity="0.38">
+          {/* Posterior Rib Arches (Subtle horizontal translucent bands) */}
+          <path d="M 80 110 C 170 125 370 125 460 110" stroke="rgba(255, 255, 255, 0.04)" strokeWidth="11" strokeLinecap="round" fill="none" />
+          <path d="M 64 165 C 160 185 380 185 476 165" stroke="rgba(255, 255, 255, 0.04)" strokeWidth="13" strokeLinecap="round" fill="none" />
+          <path d="M 52 225 C 150 250 390 250 488 225" stroke="rgba(255, 255, 255, 0.038)" strokeWidth="14" strokeLinecap="round" fill="none" />
+          <path d="M 48 290 C 150 318 390 318 492 290" stroke="rgba(255, 255, 255, 0.035)" strokeWidth="15" strokeLinecap="round" fill="none" />
+          <path d="M 54 355 C 150 385 390 385 486 355" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="15" strokeLinecap="round" fill="none" />
 
-          {/* Carina Bifurcation */}
+          {/* Central Mediastinum / Spine Column Shadow */}
+          <rect x="256" y="20" width="28" height="410" rx="4" fill="rgba(255, 255, 255, 0.015)" />
+          {/* Aortic Knob / Arch Silhouette on left side of mediastinum */}
+          <path d="M 256 120 C 275 120 292 135 292 155 C 292 170 282 182 270 188" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="8" strokeLinecap="round" fill="none" />
+        </g>
+
+        {/* ------------------------------------------------------------------ */}
+        {/* 2. TRACHEOBRONCHIAL TREE (Anatomical Carina & Mainstem Bronchi)   */}
+        {/* ------------------------------------------------------------------ */}
+        <g className="tracheobronchial-tree" opacity="0.82">
+          {/* Trachea with Cartilage C-Rings */}
           <path
-            d="M 250 78 C 242 98 215 118 185 136 M 270 78 C 278 98 305 118 335 136"
-            stroke="url(#lungEdgeGrad)"
-            strokeWidth="2"
+            d="M 257 24 L 283 24 L 281 88 L 259 88 Z"
+            fill="#091822"
+            stroke="url(#pleuraEdgeGrad)"
+            strokeWidth="1.4"
+          />
+          {[36, 48, 60, 72, 84].map((y) => (
+            <line
+              key={y}
+              x1="258"
+              y1={y}
+              x2="282"
+              y2={y}
+              stroke="rgba(94, 234, 212, 0.28)"
+              strokeWidth="1.1"
+            />
+          ))}
+
+          {/* Carina Bifurcation & Main Bronchi */}
+          {/* Right Main Bronchus (Shorter, steeper, ~25° from midline) */}
+          <path
+            d="M 259 88 C 250 108 226 130 196 148"
+            stroke="url(#pleuraEdgeGrad)"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            fill="none"
+          />
+          {/* Left Main Bronchus (Longer, more horizontal, ~45° under aortic arch) */}
+          <path
+            d="M 281 88 C 292 108 322 130 355 146"
+            stroke="url(#pleuraEdgeGrad)"
+            strokeWidth="2.2"
             strokeLinecap="round"
             fill="none"
           />
         </g>
 
-        {/* ------------------------------------------------------------ */}
-        {/* LIVING LUNG PAIR (Breathing Organic Expansion Group)         */}
-        {/* ------------------------------------------------------------ */}
+        {/* ------------------------------------------------------------------ */}
+        {/* 3. LIVING ASYMMETRIC LUNG PAIR (Organic Diaphragmatic Motion)      */}
+        {/* ------------------------------------------------------------------ */}
         <g className="hero-lung-pair-group">
-          {/* ======================================================== */}
-          {/* RIGHT LOBE (Viewer's Left Lung)                          */}
-          {/* ======================================================== */}
-          <g className="lung-lobe-left">
-            {/* Base Anatomical Parenchyma Surface */}
+          {/* ================================================================ */}
+          {/* RIGHT LUNG (Viewer's Left): 3 Lobes, Elevated Hepatic Dome       */}
+          {/* ================================================================ */}
+          <g className="lung-lobe-anatomical-right">
+            {/* Primary Radiographic Parenchyma */}
             <path
               className="lung-parenchyma-path"
-              d="M 224 96 
-                 C 204 62 168 54 136 68
-                 C 96 86 64 138 52 208
-                 C 40 278 44 332 72 368
-                 C 98 402 152 396 182 376
-                 C 204 362 216 332 222 284
-                 C 228 236 228 152 224 96 Z"
-              fill="url(#lungCavityGradLeft)"
-              stroke="url(#lungEdgeGrad)"
-              strokeWidth="2.2"
+              d="M 236 102
+                 C 214 66 174 58 138 72
+                 C 94 90 62 142 50 216
+                 C 38 290 42 344 70 380
+                 C 96 414 154 408 188 388
+                 C 212 374 226 342 232 292
+                 C 238 242 238 158 236 102 Z"
+              fill="url(#radRightLungGrad)"
+              stroke="url(#pleuraEdgeGrad)"
+              strokeWidth="1.8"
               strokeLinejoin="round"
             />
 
-            {/* Internal Shifting Grad-CAM Attention Heatmap */}
-            <path
-              className="lung-heatmap-glow-left"
-              d="M 218 108 
-                 C 200 76 168 68 140 80
-                 C 106 96 76 142 66 208
-                 C 56 270 58 322 82 356
-                 C 104 386 150 380 176 364
-                 C 196 352 208 324 214 280
-                 C 220 236 220 160 218 108 Z"
-              fill="url(#camGlowLeft)"
-            />
-
-            {/* Vascular / Bronchial Tree Fine Branches */}
-            <g className="lung-vascular-branches" opacity="0.65" filter="url(#softVascularGlow)">
-              <path
-                d="M 195 130 
-                   C 170 148 140 178 120 220
-                   M 140 178 C 115 190 92 226 84 270
-                   M 125 210 C 108 245 102 295 106 335
-                   M 155 195 C 158 238 152 285 148 340
-                   M 150 255 C 168 285 174 320 176 355
-                   M 170 148 C 152 120 128 105 110 102
-                   M 142 124 C 132 108 122 96 112 90"
-                stroke="rgba(45, 212, 191, 0.45)"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-                fill="none"
-              />
-            </g>
-
-            {/* Fissure Line (Right Lung Anatomical Lobes Separator) */}
-            <path
-              d="M 72 230 C 115 222 170 210 218 226"
-              stroke="rgba(45, 212, 191, 0.22)"
-              strokeWidth="1.2"
-              strokeDasharray="3 3"
-              fill="none"
-            />
-          </g>
-
-          {/* ======================================================== */}
-          {/* LEFT LOBE (Viewer's Right Lung — with Cardiac Notch)    */}
-          {/* ======================================================== */}
-          <g className="lung-lobe-right">
-            {/* Base Anatomical Parenchyma Surface with Medial Cardiac Notch */}
-            <path
-              className="lung-parenchyma-path"
-              d="M 296 96
-                 C 316 62 352 54 384 68
-                 C 424 86 456 138 468 208
-                 C 480 278 476 332 448 368
-                 C 422 402 368 396 338 376
-                 C 308 356 292 316 292 268
-                 C 292 220 302 180 300 148
-                 C 298 124 296 108 296 96 Z"
-              fill="url(#lungCavityGradRight)"
-              stroke="url(#lungEdgeGrad)"
-              strokeWidth="2.2"
-              strokeLinejoin="round"
-            />
-
-            {/* Internal Shifting Grad-CAM Attention Heatmap */}
+            {/* Shifting Internal Grad-CAM Heatmap Attention Core */}
             <path
               className="lung-heatmap-glow-right"
-              d="M 302 108
-                 C 320 76 352 68 380 80
-                 C 414 96 444 142 454 208
-                 C 464 270 462 322 438 356
-                 C 416 386 370 380 344 364
-                 C 318 348 304 312 304 268
-                 C 304 224 312 184 310 152
-                 C 308 132 304 116 302 108 Z"
-              fill="url(#camGlowRight)"
+              d="M 228 114
+                 C 208 80 172 72 142 84
+                 C 104 100 74 148 64 216
+                 C 54 280 56 332 80 366
+                 C 102 396 150 390 178 374
+                 C 200 360 214 332 220 286
+                 C 226 240 226 164 228 114 Z"
+              fill="url(#gradcamRightLobe)"
             />
 
-            {/* Vascular / Bronchial Tree Fine Branches */}
-            <g className="lung-vascular-branches" opacity="0.65" filter="url(#softVascularGlow)">
-              <path
-                d="M 325 130 
-                   C 350 148 380 178 400 220
-                   M 380 178 C 405 190 428 226 436 270
-                   M 395 210 C 412 245 418 295 414 335
-                   M 365 195 C 362 238 368 285 372 340
-                   M 370 255 C 352 285 346 320 344 355
-                   M 350 148 C 368 120 392 105 410 102
-                   M 378 124 C 388 108 398 96 408 90"
-                stroke="rgba(45, 212, 191, 0.45)"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-                fill="none"
-              />
+            {/* Bronchopulmonary Vascular Arborization (Multi-generation branches) */}
+            <g className="lung-vascular-branches" filter="url(#hilarVascularBlur)">
+              {/* Superior Lobar Vessels */}
+              <path d="M 198 140 C 172 120 148 108 126 104 M 158 115 C 145 98 132 88 120 84" stroke="rgba(45, 212, 191, 0.42)" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+              {/* Middle Lobar Vessels */}
+              <path d="M 198 140 C 165 162 132 195 108 238 M 148 185 C 122 200 96 235 86 280" stroke="rgba(45, 212, 191, 0.48)" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+              {/* Inferior / Basilar Lobar Vessels */}
+              <path d="M 198 140 C 190 200 178 275 174 345 M 184 240 C 158 275 148 318 144 365 M 165 295 C 132 322 118 350 114 372" stroke="rgba(45, 212, 191, 0.44)" strokeWidth="1.3" strokeLinecap="round" fill="none" />
             </g>
 
-            {/* Oblique Fissure (Left Lung Anatomical Separator) */}
-            <path
-              d="M 448 225 C 405 238 350 258 304 286"
-              stroke="rgba(45, 212, 191, 0.22)"
-              strokeWidth="1.2"
-              strokeDasharray="3 3"
-              fill="none"
-            />
+            {/* Horizontal Fissure (Separates Superior & Middle Lobes) */}
+            <path d="M 68 238 C 112 230 172 220 228 236" stroke="rgba(94, 234, 212, 0.18)" strokeWidth="1.1" strokeDasharray="3 4" fill="none" />
+            {/* Oblique Fissure (Separates Middle & Inferior Lobes) */}
+            <path d="M 98 348 C 142 300 188 230 226 185" stroke="rgba(94, 234, 212, 0.15)" strokeWidth="1.1" strokeDasharray="3 4" fill="none" />
           </g>
 
-          {/* ======================================================== */}
-          {/* SOPHISTICATED MEDICAL-TECH PERSONIFIED EYES               */}
-          {/* ======================================================== */}
+          {/* ================================================================ */}
+          {/* LEFT LUNG (Viewer's Right): 2 Lobes, Cardiac Notch & Lingula     */}
+          {/* ================================================================ */}
+          <g className="lung-lobe-anatomical-left">
+            {/* Primary Radiographic Parenchyma with Deep Cardiac Notch */}
+            <path
+              className="lung-parenchyma-path"
+              d="M 304 102
+                 C 326 66 366 58 402 72
+                 C 446 90 478 142 490 216
+                 C 502 290 498 344 470 380
+                 C 444 414 386 408 352 388
+                 C 322 368 304 326 304 274
+                 C 304 224 314 184 312 152
+                 C 310 128 306 112 304 102 Z"
+              fill="url(#radLeftLungGrad)"
+              stroke="url(#pleuraEdgeGrad)"
+              strokeWidth="1.8"
+              strokeLinejoin="round"
+            />
 
-          {/* --- LEFT EYE (Positioned on viewer's left lung) --- */}
+            {/* Shifting Internal Grad-CAM Heatmap Attention Core */}
+            <path
+              className="lung-heatmap-glow-left"
+              d="M 312 114
+                 C 332 80 368 72 398 84
+                 C 436 100 466 148 476 216
+                 C 486 280 484 332 460 366
+                 C 438 396 390 390 362 374
+                 C 334 356 318 320 318 274
+                 C 318 228 326 188 324 156
+                 C 322 134 316 120 312 114 Z"
+              fill="url(#gradcamLeftLobe)"
+            />
+
+            {/* Bronchopulmonary Vascular Arborization */}
+            <g className="lung-vascular-branches" filter="url(#hilarVascularBlur)">
+              {/* Superior Division */}
+              <path d="M 342 142 C 368 120 394 108 418 104 M 382 115 C 395 98 410 88 424 84" stroke="rgba(45, 212, 191, 0.42)" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+              {/* Lingular Division (Encircling Cardiac Notch) */}
+              <path d="M 342 142 C 375 162 410 195 434 238 M 392 185 C 418 200 444 235 454 280" stroke="rgba(45, 212, 191, 0.48)" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+              {/* Inferior / Basilar Division */}
+              <path d="M 342 142 C 352 200 364 275 368 345 M 358 240 C 384 275 394 318 398 365 M 375 295 C 410 322 424 350 428 372" stroke="rgba(45, 212, 191, 0.44)" strokeWidth="1.3" strokeLinecap="round" fill="none" />
+            </g>
+
+            {/* Left Oblique Fissure */}
+            <path d="M 470 232 C 424 246 364 268 316 296" stroke="rgba(94, 234, 212, 0.16)" strokeWidth="1.1" strokeDasharray="3 4" fill="none" />
+          </g>
+
+          {/* ================================================================ */}
+          {/* 4. DISCRETE CLINICAL SENSORY NODES (Integrated Gaze Tracking)     */}
+          {/* ================================================================ */}
+
+          {/* --- RIGHT LUNG OCULAR NODE (Viewer's Left — Upper Hilar Zone) --- */}
           <g
             ref={leftEyeRef}
-            className={`hero-eye-group left-eye ${isBlinking ? "eye-blinking" : ""}`}
-            transform="translate(142, 185)"
+            className={`hero-ocular-node left-node ${isBlinking ? "node-blinking" : ""}`}
+            transform="translate(152, 182)"
           >
-            {/* Outer Diagnostic Glow Rim */}
-            <circle cx="0" cy="0" r="19" fill="#051016" stroke="url(#eyeRimGrad)" strokeWidth="1.8" filter="url(#radiographicBloom)" />
-            {/* Sclera Chamber */}
-            <circle cx="0" cy="0" r="17.5" fill="url(#scleraGrad)" />
-            {/* Sclera Reticle Arc Marks */}
-            <circle cx="0" cy="0" r="15" stroke="rgba(45, 212, 191, 0.18)" strokeWidth="0.8" strokeDasharray="4 3" fill="none" />
+            {/* Outer Clinical Bezel Ring */}
+            <circle cx="0" cy="0" r="14.5" fill="#030A0F" stroke="url(#ocularLensBezel)" strokeWidth="1.4" filter="url(#radiographicSoftGlow)" />
+            {/* Dark Vitreous Chamber */}
+            <circle cx="0" cy="0" r="13" fill="url(#ocularChamberGrad)" />
+            {/* Faint Optical Reticle Ring */}
+            <circle cx="0" cy="0" r="11" stroke="rgba(45, 212, 191, 0.14)" strokeWidth="0.7" strokeDasharray="3 3" fill="none" />
 
-            {/* Trackable Iris + Pupil Unit */}
+            {/* Trackable Crystalline Iris & Deep Aperture Pupil */}
             <g transform={`translate(${leftPupilPos.x}, ${leftPupilPos.y})`}>
               {/* Iris Body */}
-              <circle cx="0" cy="0" r="10.5" fill="url(#irisGrad)" />
-              {/* Iris Micro-Ring */}
-              <circle cx="0" cy="0" r="9.2" stroke="rgba(94, 234, 212, 0.5)" strokeWidth="0.8" fill="none" />
-              {/* Deep Pupil Core */}
-              <circle cx="0" cy="0" r="5.6" fill="#04090D" />
-              {/* Sharp Corneal Reflection Catchlight */}
-              <circle cx="-3" cy="-3.2" r="2.2" fill="#FFFFFF" opacity="0.95" />
-              <circle cx="2" cy="2.2" r="1" fill="#FFFFFF" opacity="0.6" />
+              <circle cx="0" cy="0" r="7.4" fill="url(#ocularIrisGrad)" />
+              {/* Iris Micro-Collar */}
+              <circle cx="0" cy="0" r="6.2" stroke="rgba(94, 234, 212, 0.55)" strokeWidth="0.6" fill="none" />
+              {/* Deep Central Aperture Pupil */}
+              <circle cx="0" cy="0" r="3.8" fill="#010406" />
+              {/* Crisp Corneal Specular Catchlights (Authentic glassy wetness) */}
+              <circle cx="-1.8" cy="-2.0" r="1.4" fill="#FFFFFF" opacity="0.95" />
+              <circle cx="1.4" cy="1.4" r="0.7" fill="#FFFFFF" opacity="0.55" />
             </g>
 
-            {/* Eyelid Shutter for Natural Organic Blinking */}
-            <path
-              className="eye-shutter-top"
-              d="M -19 0 C -19 -14 19 -14 19 0 C 19 -1 19 -1 -19 -1 Z"
-              fill="#061219"
-            />
-            <path
-              className="eye-shutter-bottom"
-              d="M -19 0 C -19 14 19 14 19 0 C 19 1 19 1 -19 1 Z"
-              fill="#061219"
-            />
+            {/* Precision Anatomical Shutter Eyelids */}
+            <path className="shutter-top" d="M -15 0 C -15 -11 15 -11 15 0 C 15 -1 15 -1 -15 -1 Z" fill="#040D14" />
+            <path className="shutter-bottom" d="M -15 0 C -15 11 15 11 15 0 C 15 1 15 1 -15 1 Z" fill="#040D14" />
           </g>
 
-          {/* --- RIGHT EYE (Positioned on viewer's right lung) --- */}
+          {/* --- LEFT LUNG OCULAR NODE (Viewer's Right — Asymmetric Hilar Zone) --- */}
           <g
             ref={rightEyeRef}
-            className={`hero-eye-group right-eye ${isBlinking ? "eye-blinking" : ""}`}
-            transform="translate(378, 185)"
+            className={`hero-ocular-node right-node ${isBlinking ? "node-blinking" : ""}`}
+            transform="translate(388, 182)"
           >
-            {/* Outer Diagnostic Glow Rim */}
-            <circle cx="0" cy="0" r="19" fill="#051016" stroke="url(#eyeRimGrad)" strokeWidth="1.8" filter="url(#radiographicBloom)" />
-            {/* Sclera Chamber */}
-            <circle cx="0" cy="0" r="17.5" fill="url(#scleraGrad)" />
-            {/* Sclera Reticle Arc Marks */}
-            <circle cx="0" cy="0" r="15" stroke="rgba(45, 212, 191, 0.18)" strokeWidth="0.8" strokeDasharray="4 3" fill="none" />
+            {/* Outer Clinical Bezel Ring */}
+            <circle cx="0" cy="0" r="14.5" fill="#030A0F" stroke="url(#ocularLensBezel)" strokeWidth="1.4" filter="url(#radiographicSoftGlow)" />
+            {/* Dark Vitreous Chamber */}
+            <circle cx="0" cy="0" r="13" fill="url(#ocularChamberGrad)" />
+            {/* Faint Optical Reticle Ring */}
+            <circle cx="0" cy="0" r="11" stroke="rgba(45, 212, 191, 0.14)" strokeWidth="0.7" strokeDasharray="3 3" fill="none" />
 
-            {/* Trackable Iris + Pupil Unit */}
+            {/* Trackable Crystalline Iris & Deep Aperture Pupil */}
             <g transform={`translate(${rightPupilPos.x}, ${rightPupilPos.y})`}>
               {/* Iris Body */}
-              <circle cx="0" cy="0" r="10.5" fill="url(#irisGrad)" />
-              {/* Iris Micro-Ring */}
-              <circle cx="0" cy="0" r="9.2" stroke="rgba(94, 234, 212, 0.5)" strokeWidth="0.8" fill="none" />
-              {/* Deep Pupil Core */}
-              <circle cx="0" cy="0" r="5.6" fill="#04090D" />
-              {/* Sharp Corneal Reflection Catchlight */}
-              <circle cx="-3" cy="-3.2" r="2.2" fill="#FFFFFF" opacity="0.95" />
-              <circle cx="2" cy="2.2" r="1" fill="#FFFFFF" opacity="0.6" />
+              <circle cx="0" cy="0" r="7.4" fill="url(#ocularIrisGrad)" />
+              {/* Iris Micro-Collar */}
+              <circle cx="0" cy="0" r="6.2" stroke="rgba(94, 234, 212, 0.55)" strokeWidth="0.6" fill="none" />
+              {/* Deep Central Aperture Pupil */}
+              <circle cx="0" cy="0" r="3.8" fill="#010406" />
+              {/* Crisp Corneal Specular Catchlights */}
+              <circle cx="-1.8" cy="-2.0" r="1.4" fill="#FFFFFF" opacity="0.95" />
+              <circle cx="1.4" cy="1.4" r="0.7" fill="#FFFFFF" opacity="0.55" />
             </g>
 
-            {/* Eyelid Shutter for Natural Organic Blinking */}
-            <path
-              className="eye-shutter-top"
-              d="M -19 0 C -19 -14 19 -14 19 0 C 19 -1 19 -1 -19 -1 Z"
-              fill="#061219"
-            />
-            <path
-              className="eye-shutter-bottom"
-              d="M -19 0 C -19 14 19 14 19 0 C 19 1 19 1 -19 1 Z"
-              fill="#061219"
-            />
+            {/* Precision Anatomical Shutter Eyelids */}
+            <path className="shutter-top" d="M -15 0 C -15 -11 15 -11 15 0 C 15 -1 15 -1 -15 -1 Z" fill="#040D14" />
+            <path className="shutter-bottom" d="M -15 0 C -15 11 15 11 15 0 C 15 1 15 1 -15 1 Z" fill="#040D14" />
           </g>
         </g>
       </svg>

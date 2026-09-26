@@ -1,154 +1,176 @@
 /* ==========================================================================
-   HERO LUNG VISUAL — Living Medical-Tech Visualization
+   HERO LUNG VISUAL — High-Fidelity Cinematic Radiology Visualization
    ========================================================================== */
 
 .hero-lung-container {
   position: relative;
   width: 100%;
-  max-width: 480px;
+  max-width: 500px;
   height: auto;
-  aspect-ratio: 520 / 440;
+  aspect-ratio: 540 / 460;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   margin: 0 auto;
   transform-style: preserve-3d;
-  transition: transform 140ms ease-out;
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
-  pointer-events: none; /* Let mouse pass through for natural tracking */
+  pointer-events: none;
   user-select: none;
 }
 
-/* Ambient Soft Glow Behind Lungs */
+/* Deep Volumetric Radiographic Ambient Halo */
 .hero-lung-radiance {
   position: absolute;
-  width: 90%;
-  height: 90%;
+  width: 95%;
+  height: 95%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(20, 184, 166, 0.12) 0%, rgba(13, 148, 136, 0.04) 55%, transparent 75%);
-  filter: blur(40px);
+  background: radial-gradient(circle at 50% 48%, rgba(20, 184, 166, 0.09) 0%, rgba(13, 148, 136, 0.03) 50%, transparent 72%);
+  filter: blur(44px);
   z-index: 0;
   pointer-events: none;
-  animation: radiancePulse 6.5s ease-in-out infinite alternate;
+  animation: radRadiancePulse 7.2s ease-in-out infinite alternate;
 }
 
-/* Main SVG Layer */
+@keyframes radRadiancePulse {
+  0% {
+    transform: scale(0.94);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.06);
+    opacity: 0.95;
+  }
+}
+
+/* Main SVG Vector Layer */
 .hero-lung-svg {
   width: 100%;
   height: 100%;
   overflow: visible;
   z-index: 1;
-  filter: drop-shadow(0 16px 36px rgba(0, 0, 0, 0.65));
+  filter: drop-shadow(0 20px 48px rgba(0, 0, 0, 0.75));
 }
 
-/* Organic Slow Breathing Cycle */
+/* Thoracic Rib Cage Subtle Parallax Background Layer */
+.thoracic-rib-cage {
+  transition: transform 200ms ease-out;
+}
+
+/* Organic Asymmetrical Respiration Cycle (Non-linear diaphragmatic heave) */
 .hero-lung-pair-group {
-  transform-origin: 260px 220px;
-  animation: lungBreathe 5.8s ease-in-out infinite;
+  transform-origin: 270px 220px;
+  animation: physiologicalBreathing 6.4s cubic-bezier(0.42, 0, 0.58, 1) infinite;
 }
 
-@keyframes lungBreathe {
+@keyframes physiologicalBreathing {
   0% {
-    transform: scale(0.985) translateY(2px);
+    /* Resting Expiration */
+    transform: scale(0.985, 0.98) translateY(1.5px);
   }
-  50% {
-    transform: scale(1.02) translateY(-2px);
+  38% {
+    /* Peak Inspiration */
+    transform: scale(1.022, 1.018) translateY(-2px);
+  }
+  48% {
+    /* Post-Inspiratory Pause */
+    transform: scale(1.02, 1.016) translateY(-1.8px);
   }
   100% {
-    transform: scale(0.985) translateY(2px);
+    /* Slow Passive Exhalation */
+    transform: scale(0.985, 0.98) translateY(1.5px);
   }
 }
 
-@keyframes radiancePulse {
-  0% {
-    transform: scale(0.92);
-    opacity: 0.65;
-  }
-  100% {
-    transform: scale(1.08);
-    opacity: 1;
-  }
-}
-
-/* Shifting Radiographic / Grad-CAM Heatmap Glow */
-.lung-heatmap-glow-left {
-  animation: heatmapShiftLeft 7.2s ease-in-out infinite alternate;
-  transform-origin: 150px 220px;
-}
-
+/* Shifting Radiographic Grad-CAM Heatmap Fields */
 .lung-heatmap-glow-right {
-  animation: heatmapShiftRight 6.8s ease-in-out infinite alternate;
-  transform-origin: 370px 220px;
+  animation: gradcamShiftRight 8.4s ease-in-out infinite alternate;
+  transform-origin: 160px 220px;
 }
 
-@keyframes heatmapShiftLeft {
-  0% {
-    opacity: 0.55;
-    transform: scale(0.96) translate(-2px, -2px);
-  }
-  50% {
-    opacity: 0.85;
-    transform: scale(1.03) translate(2px, 1px);
-  }
-  100% {
-    opacity: 0.6;
-    transform: scale(0.98) translate(0px, -1px);
-  }
+.lung-heatmap-glow-left {
+  animation: gradcamShiftLeft 7.8s ease-in-out infinite alternate;
+  transform-origin: 380px 220px;
 }
 
-@keyframes heatmapShiftRight {
+@keyframes gradcamShiftRight {
   0% {
-    opacity: 0.6;
-    transform: scale(0.97) translate(1px, -2px);
+    opacity: 0.5;
+    transform: scale(0.96) translate(-2px, -1px);
   }
   50% {
-    opacity: 0.9;
-    transform: scale(1.04) translate(-2px, 2px);
+    opacity: 0.82;
+    transform: scale(1.03) translate(1.5px, 1.5px);
   }
   100% {
     opacity: 0.55;
-    transform: scale(0.99) translate(1px, 0px);
+    transform: scale(0.98) translate(-1px, 0px);
   }
 }
 
-/* Eyeball & Iris Lighting */
-.hero-eye-group {
+@keyframes gradcamShiftLeft {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.97) translate(1px, -1.5px);
+  }
+  50% {
+    opacity: 0.88;
+    transform: scale(1.04) translate(-1.5px, 1.5px);
+  }
+  100% {
+    opacity: 0.5;
+    transform: scale(0.99) translate(0.5px, -0.5px);
+  }
+}
+
+/* Discrete Clinical Ocular Sensory Nodes */
+.hero-ocular-node {
   transition: transform 120ms ease-out;
   cursor: default;
 }
 
-/* Natural Eyelid Blinking */
-.eye-shutter-top,
-.eye-shutter-bottom {
+/* Precision Anatomical Eyelid Blinking */
+.shutter-top,
+.shutter-bottom {
   transform-origin: center;
-  transition: transform 140ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 120ms cubic-bezier(0.4, 0, 0.2, 1);
   transform: scaleY(0);
 }
 
-.eye-blinking .eye-shutter-top,
-.eye-blinking .eye-shutter-bottom {
+.node-blinking .shutter-top,
+.node-blinking .shutter-bottom {
   transform: scaleY(1);
 }
 
-/* Interactive Scanning State (triggered on primary button hover) */
+/* Vascular Tree Fine Bronchial Filaments */
+.lung-vascular-branches {
+  opacity: 0.72;
+  transition: opacity 300ms ease;
+}
+
+/* Interactive Scanning State (Triggered on Primary CTA Button Hover) */
 .hero-lung-scanning .hero-lung-radiance {
-  background: radial-gradient(circle, rgba(45, 212, 191, 0.25) 0%, rgba(20, 184, 166, 0.1) 60%, transparent 80%);
-  filter: blur(48px);
-  transition: all 400ms ease;
+  background: radial-gradient(circle at 50% 48%, rgba(45, 212, 191, 0.2) 0%, rgba(20, 184, 166, 0.08) 55%, transparent 75%);
+  filter: blur(52px);
+  transition: all 350ms ease;
 }
 
 .hero-lung-scanning .lung-parenchyma-path {
-  stroke: rgba(94, 234, 212, 0.85);
-  filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.6));
-  transition: stroke 300ms ease, filter 300ms ease;
+  stroke: rgba(94, 234, 212, 0.65);
+  filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.45));
+  transition: stroke 280ms ease, filter 280ms ease;
 }
 
-.hero-lung-scanning .lung-heatmap-glow-left,
-.hero-lung-scanning .lung-heatmap-glow-right {
-  opacity: 1;
-  filter: drop-shadow(0 0 14px rgba(45, 212, 191, 0.4));
-  transition: opacity 300ms ease;
+.hero-lung-scanning .lung-heatmap-glow-right,
+.hero-lung-scanning .lung-heatmap-glow-left {
+  opacity: 0.95;
+  filter: drop-shadow(0 0 12px rgba(45, 212, 191, 0.35));
+  transition: opacity 280ms ease;
+}
+
+.hero-lung-scanning .lung-vascular-branches {
+  opacity: 0.95;
+  filter: drop-shadow(0 0 4px rgba(45, 212, 191, 0.5));
 }
 
 /* ==========================================================================
@@ -157,8 +179,8 @@
 @media (prefers-reduced-motion: reduce) {
   .hero-lung-pair-group,
   .hero-lung-radiance,
-  .lung-heatmap-glow-left,
-  .lung-heatmap-glow-right {
+  .lung-heatmap-glow-right,
+  .lung-heatmap-glow-left {
     animation: none !important;
   }
 
