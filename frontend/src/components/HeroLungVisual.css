@@ -1,0 +1,226 @@
+/* ==========================================================================
+   HERO LUNG VISUAL — Living Medical-Tech Visualization
+   ========================================================================== */
+
+.hero-lung-container {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  aspect-ratio: 520 / 440;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  transform-style: preserve-3d;
+  transition: transform 140ms ease-out;
+  will-change: transform;
+  pointer-events: none; /* Let mouse pass through for natural tracking */
+  user-select: none;
+}
+
+/* Ambient Soft Glow Behind Lungs */
+.hero-lung-radiance {
+  position: absolute;
+  width: 90%;
+  height: 90%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.12) 0%, rgba(13, 148, 136, 0.04) 55%, transparent 75%);
+  filter: blur(40px);
+  z-index: 0;
+  pointer-events: none;
+  animation: radiancePulse 6.5s ease-in-out infinite alternate;
+}
+
+/* Main SVG Layer */
+.hero-lung-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  z-index: 1;
+  filter: drop-shadow(0 16px 36px rgba(0, 0, 0, 0.65));
+}
+
+/* Organic Slow Breathing Cycle */
+.hero-lung-pair-group {
+  transform-origin: 260px 220px;
+  animation: lungBreathe 5.8s ease-in-out infinite;
+}
+
+@keyframes lungBreathe {
+  0% {
+    transform: scale(0.985) translateY(2px);
+  }
+  50% {
+    transform: scale(1.02) translateY(-2px);
+  }
+  100% {
+    transform: scale(0.985) translateY(2px);
+  }
+}
+
+@keyframes radiancePulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+/* Shifting Radiographic / Grad-CAM Heatmap Glow */
+.lung-heatmap-glow-left {
+  animation: heatmapShiftLeft 7.2s ease-in-out infinite alternate;
+  transform-origin: 150px 220px;
+}
+
+.lung-heatmap-glow-right {
+  animation: heatmapShiftRight 6.8s ease-in-out infinite alternate;
+  transform-origin: 370px 220px;
+}
+
+@keyframes heatmapShiftLeft {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.96) translate(-2px, -2px);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.03) translate(2px, 1px);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(0.98) translate(0px, -1px);
+  }
+}
+
+@keyframes heatmapShiftRight {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.97) translate(1px, -2px);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.04) translate(-2px, 2px);
+  }
+  100% {
+    opacity: 0.55;
+    transform: scale(0.99) translate(1px, 0px);
+  }
+}
+
+/* Eyeball & Iris Lighting */
+.hero-eye-group {
+  transition: transform 120ms ease-out;
+  cursor: default;
+}
+
+/* Natural Eyelid Blinking */
+.eye-shutter-top,
+.eye-shutter-bottom {
+  transform-origin: center;
+  transition: transform 140ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scaleY(0);
+}
+
+.eye-blinking .eye-shutter-top,
+.eye-blinking .eye-shutter-bottom {
+  transform: scaleY(1);
+}
+
+/* Interactive Scanning State (triggered on primary button hover) */
+.hero-lung-scanning .hero-lung-radiance {
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.25) 0%, rgba(20, 184, 166, 0.1) 60%, transparent 80%);
+  filter: blur(48px);
+  transition: all 400ms ease;
+}
+
+.hero-lung-scanning .lung-parenchyma-path {
+  stroke: rgba(94, 234, 212, 0.85);
+  filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.6));
+  transition: stroke 300ms ease, filter 300ms ease;
+}
+
+.hero-lung-scanning .lung-heatmap-glow-left,
+.hero-lung-scanning .lung-heatmap-glow-right {
+  opacity: 1;
+  filter: drop-shadow(0 0 14px rgba(45, 212, 191, 0.4));
+  transition: opacity 300ms ease;
+}
+
+/* Subtle Understated Status Tag */
+.hero-lung-caption {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(8, 17, 24, 0.7);
+  border: 1px solid rgba(45, 212, 191, 0.16);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  z-index: 2;
+  opacity: 0.85;
+  transition: opacity 250ms ease, border-color 250ms ease;
+}
+
+.hero-lung-scanning .hero-lung-caption {
+  opacity: 1;
+  border-color: rgba(45, 212, 191, 0.4);
+  box-shadow: 0 0 16px rgba(20, 184, 166, 0.25);
+}
+
+.lung-caption-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--gl-teal, #14B8A6);
+  box-shadow: 0 0 6px var(--gl-teal, #14B8A6);
+  animation: pulseDot 2.2s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.lung-caption-text {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94A3B8;
+  font-family: monospace, -apple-system, sans-serif;
+}
+
+.hero-lung-scanning .lung-caption-text {
+  color: #5EEAD4;
+}
+
+/* ==========================================================================
+   PREFERS REDUCED MOTION (Calm Static Medical Silhouette)
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .hero-lung-pair-group,
+  .hero-lung-radiance,
+  .lung-heatmap-glow-left,
+  .lung-heatmap-glow-right,
+  .lung-caption-dot {
+    animation: none !important;
+  }
+
+  .hero-lung-container {
+    transform: none !important;
+    transition: none !important;
+  }
+}

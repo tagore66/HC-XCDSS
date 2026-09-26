@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import BrandIntro from "./BrandIntro";
+import HeroLungVisual from "./HeroLungVisual";
 import { getAuthToken } from "../services/api";
 import "./GuestLanding.css";
 import {
@@ -187,6 +188,7 @@ export default function GuestLanding({ onOpenAuth, currentUser }) {
   const [signatureStep, setSignatureStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isInView, setIsInView] = useState(false);
+  const [isHeroBtnHovered, setIsHeroBtnHovered] = useState(false);
 
   // Manual Grad-CAM Opacity Override (null when following step default)
   const [manualOpacity, setManualOpacity] = useState(null);
@@ -708,48 +710,58 @@ export default function GuestLanding({ onOpenAuth, currentUser }) {
         {/* 2. CINEMATIC EDITORIAL HERO */}
         <section className="gl-hero-editorial">
           <div className="gl-hero-editorial-inner">
-            {/* System Status Pill */}
-            <div className="gl-hero-eyebrow-line">
-              <span className="gl-eyebrow-accent-dot" />
-              <span className="gl-eyebrow-text">HUMAN-CENTRED EXPLAINABLE AI</span>
+            {/* Left Content Column: Headline, Copy & Actions */}
+            <div className="gl-hero-content-col">
+              {/* System Status Pill */}
+              <div className="gl-hero-eyebrow-line">
+                <span className="gl-eyebrow-accent-dot" />
+                <span className="gl-eyebrow-text">HUMAN-CENTRED EXPLAINABLE AI</span>
+              </div>
+
+              {/* Main Editorial Headline */}
+              <h1 className="gl-hero-headline">See what the scan sees.</h1>
+
+              {/* Elevated, Atmospheric Subtitle */}
+              <p className="gl-hero-subhead">
+                An explainable clinical decision support framework bridging multi-label deep
+                learning, visual attention mapping, and verified specialist physician review.
+              </p>
+
+              {/* Understated, Refined Entry Buttons */}
+              <div className="gl-hero-actions">
+                <button
+                  type="button"
+                  className="btn-gl-primary-hero"
+                  onMouseEnter={() => setIsHeroBtnHovered(true)}
+                  onMouseLeave={() => setIsHeroBtnHovered(false)}
+                  onClick={() => onOpenAuth("register", "PATIENT")}
+                >
+                  <span>Start Patient Analysis</span>
+                  <ArrowRight size={15} />
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-gl-secondary-hero"
+                  onClick={() => onOpenAuth("register", "PROFESSIONAL")}
+                >
+                  <Stethoscope size={15} />
+                  <span>Physician Access</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="gl-hero-text-link"
+                  onClick={() => onOpenAuth("login")}
+                >
+                  Already registered? Sign in →
+                </button>
+              </div>
             </div>
 
-            {/* Main Editorial Headline */}
-            <h1 className="gl-hero-headline">See what the scan sees.</h1>
-
-            {/* Elevated, Atmospheric Subtitle */}
-            <p className="gl-hero-subhead">
-              An explainable clinical decision support framework bridging multi-label deep
-              learning, visual attention mapping, and verified specialist physician review.
-            </p>
-
-            {/* Understated, Refined Entry Buttons */}
-            <div className="gl-hero-actions">
-              <button
-                type="button"
-                className="btn-gl-primary-hero"
-                onClick={() => onOpenAuth("register", "PATIENT")}
-              >
-                <span>Start Patient Analysis</span>
-                <ArrowRight size={15} />
-              </button>
-
-              <button
-                type="button"
-                className="btn-gl-secondary-hero"
-                onClick={() => onOpenAuth("register", "PROFESSIONAL")}
-              >
-                <Stethoscope size={15} />
-                <span>Physician Access</span>
-              </button>
-
-              <button
-                type="button"
-                className="gl-hero-text-link"
-                onClick={() => onOpenAuth("login")}
-              >
-                Already registered? Sign in →
-              </button>
+            {/* Right Visual Column: Living Medical-Tech Animated Lungs */}
+            <div className="gl-hero-visual-col">
+              <HeroLungVisual isScanning={isHeroBtnHovered} />
             </div>
           </div>
         </section>

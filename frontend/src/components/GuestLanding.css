@@ -205,19 +205,36 @@
 .gl-hero-editorial {
   position: relative;
   z-index: 1;
-  padding: clamp(72px, 10vh, 115px) 24px clamp(48px, 7vh, 80px);
-  text-align: center;
+  padding: clamp(64px, 8vh, 100px) clamp(20px, 4vw, 48px) clamp(48px, 6vh, 72px);
   display: flex;
   justify-content: center;
   background: transparent;
 }
 
 .gl-hero-editorial-inner {
-  max-width: 860px;
+  max-width: 1220px;
   width: 100%;
+  display: grid;
+  grid-template-columns: 1.18fr 0.82fr;
+  gap: clamp(24px, 4vw, 56px);
+  align-items: center;
+}
+
+/* Left Content Column */
+.gl-hero-content-col {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Right Visual Column */
+.gl-hero-visual-col {
+  display: flex;
   align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
 }
 
 .gl-hero-eyebrow-line {
@@ -228,7 +245,7 @@
   border-radius: 999px;
   background: rgba(20, 184, 166, 0.06);
   border: 1px solid rgba(20, 184, 166, 0.2);
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
 .gl-eyebrow-accent-dot {
@@ -247,35 +264,35 @@
 }
 
 .gl-hero-headline {
-  font-size: clamp(46px, 6.4vw, 82px);
+  font-size: clamp(40px, 4.8vw, 68px);
   font-weight: 800;
   letter-spacing: -0.04em;
-  line-height: 1.05;
+  line-height: 1.06;
   background: linear-gradient(180deg, #FFFFFF 20%, #DCE8EC 65%, #8FA7B0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 20px;
-  max-width: 840px;
+  max-width: 620px;
   width: 100%;
 }
 
 .gl-hero-subhead {
-  font-size: clamp(16px, 1.8vw, 18.5px);
+  font-size: clamp(15.5px, 1.4vw, 17.5px);
   line-height: 1.6;
   color: var(--gl-text-secondary);
-  max-width: 640px;
+  max-width: 540px;
   width: 100%;
-  margin-bottom: 34px;
+  margin-bottom: 32px;
   font-weight: 400;
 }
 
 .gl-hero-actions {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
+  justify-content: flex-start;
+  gap: 14px;
   flex-wrap: wrap;
-  margin-bottom: 36px;
+  margin-bottom: 12px;
 }
 
 .btn-gl-primary-hero {
@@ -1869,6 +1886,27 @@
    RESPONSIVE DESIGN
    -------------------------------------------------------------------------- */
 @media (max-width: 980px) {
+  .gl-hero-editorial-inner {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 40px;
+  }
+
+  .gl-hero-content-col {
+    align-items: center;
+    text-align: center;
+  }
+
+  .gl-hero-actions {
+    justify-content: center;
+  }
+
+  .gl-hero-visual-col {
+    order: 2;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+
   .gl-showcase-stage {
     grid-template-columns: 1fr;
     gap: 28px;
