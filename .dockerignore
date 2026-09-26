@@ -1,0 +1,46 @@
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python caches and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Raw Datasets
+data/
+external_test/
+*.csv
+*.tar.gz
+*.zip
+
+# Node / Frontend build
+frontend/node_modules/
+node_modules/
+dist/
+build/
+.npm/
+
+# Version control & IDE
+.git/
+.gitignore
+.github/
+.vscode/
+.idea/
+
+# Local outputs & databases
+outputs/
+scratch/
+tmp/
+temp/
+
+# Documentation and scratch files
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,74 @@
+FROM python:3.11-slim-bookworm
+
+# Prevent Python from writing .pyc files and enable unbuffered output
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies (OpenCV libraries and curl for healthchecks)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 \
+    libglib2.0-0 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create dedicated non-privileged user and group (UID 10001)
+RUN groupadd -g 10001 appgroup && \
+    useradd -u 10001 -g appgroup -s /bin/bash -m appuser
+
+WORKDIR /app
+ENV TORCH_HOME=/home/appuser/.cache/torch
+
+# Upgrade pip and install PyTorch CPU wheels for lightweight staging runtime
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+        torch==2.11.0 \
+        torchvision==0.26.0 \
+        --index-url https://download.pytorch.org/whl/cpu
+
+# Install backend dependencies
+RUN pip install --no-cache-dir \
+    fastapi==0.141.1 \
+    uvicorn[standard]==0.52.4 \
+    python-multipart==0.0.32 \
+    python-dotenv==1.2.3 \
+    pydantic==2.13.4 \
+    sqlalchemy==2.0.52 \
+    psycopg2-binary==2.9.9 \
+    cloudinary==1.46.2 \
+    pyjwt==2.13.0 \
+    bcrypt==5.0.0 \
+    passlib==1.7.4 \
+    email-validator==2.3.0 \
+    stripe==15.6.1 \
+    jinja2==3.1.6 \
+    markupsafe==3.0.3 \
+    grad-cam==1.5.7 \
+    opencv-python-headless==5.0.0.93 \
+    pillow==12.3.0 \
+    numpy==2.4.6 \
+    scikit-learn==1.9.0 \
+    scipy==1.17.1 \
+    httpx==0.28.1
+
+# Copy source code and baked-in model checkpoints into container
+COPY src /app/src
+COPY models /app/models
+
+# Create default outputs directory structure and configure non-root ownership
+RUN mkdir -p /app/outputs/analyses /app/outputs/evaluation /home/appuser/.cache/torch && \
+    chown -R appuser:appgroup /app /home/appuser
+
+# Switch to non-privileged user
+USER appuser
+
+# Expose FastAPI backend port
+EXPOSE 8000
+
+# Healthcheck probe using /health endpoint
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
+    CMD sh -c "curl -f http://localhost:\${PORT:-8000}/health || exit 1"
+
+# Start FastAPI server (supports dynamic Render PORT with 8000 fallback, single worker for memory efficiency)
+CMD ["sh", "-c", "uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+

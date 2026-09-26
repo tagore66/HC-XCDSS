@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Raw Training & External Datasets (Massive binary datasets)
+data/
+external_test/
+*.csv
+*.tar.gz
+*.zip
+
+# Environment & Secrets (CRITICAL)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Database & SQLite outputs
+outputs/hc_xcdss.db
+outputs/hc_xcdss.db-journal
+outputs/analyses/
+outputs/verification_documents/
+outputs/uploads/
+outputs/inference/
+outputs/figures/
+outputs/predictions/
+outputs/gradcam/
+outputs/xai/
+outputs/evaluation/
+outputs/*.db*
+outputs/*.sqlite*
+outputs/*.json
+
+# Scratch & Temporary
+scratch/
+tmp/
+temp/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Model Checkpoints (Ignore research/baseline checkpoints, keep only production)
+models/checkpoints/*.pth
+!models/checkpoints/densenet121_320_noaug_best.pth
