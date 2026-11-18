@@ -236,8 +236,10 @@ function App() {
         } else if (isProVerified) {
           if (savedReviewId && savedScreen === "pro-review") {
             openProfessionalReview(savedReviewId, { replace: true });
-          } else if (savedScreen === "pro-dashboard") {
-            navigateTo("pro-dashboard", { replace: true });
+          } else if (savedAnalysisId && savedScreen === "result") {
+            openHistoricalAnalysis(savedAnalysisId, { replace: true });
+          } else if (["pro-dashboard", "upload", "history"].includes(savedScreen)) {
+            navigateTo(savedScreen, { replace: true });
           } else {
             navigateTo("pro-dashboard", { replace: true });
           }
@@ -722,6 +724,7 @@ function App() {
             result={result}
             preview={preview}
             view={view}
+            currentUser={currentUser}
             onResetAnalysis={resetAnalysis}
             onBackToHistory={navigateBack}
             onOpenMyReviews={() => navigateTo("reviews")}
@@ -793,7 +796,8 @@ function App() {
         {currentUser && currentUser.role === "PROFESSIONAL" && currentUser.professional_profile?.verification_status === "VERIFIED" && (
           activeScreen === "pro-dashboard" ||
           (activeScreen === "pro-review" && !activeReviewId) ||
-          !["pro-dashboard", "pro-review", "pro-pending"].includes(activeScreen)
+          (activeScreen === "result" && !result) ||
+          !["pro-dashboard", "pro-review", "pro-pending", "upload", "result", "history"].includes(activeScreen)
         ) && (
           <ProfessionalDashboard
             currentUser={currentUser}

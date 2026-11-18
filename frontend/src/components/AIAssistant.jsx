@@ -162,17 +162,22 @@ function formatCaseId(id) {
 /**
  * AIAssistant - Floating Bottom-Right Clinical AI Assistant
  * 
- * Collapsed: High-end floating trigger button.
- * Expanded: Floating side drawer (390-430px) anchored at bottom-right.
+ * Supports both internal toggle and external programmatic triggering.
  */
-export default function AIAssistant({ analysis, initialRole = "patient" }) {
+export default function AIAssistant({
+  analysis,
+  role = "patient",
+  externalOpen = false,
+  onCloseExternal = null,
+  initialPrompt = "",
+}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [role, setRole] = useState(initialRole);
   const [messages, setMessages] = useState([]);
   const [inputQuestion, setInputQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const isProf = (role || "").toLowerCase() === "professional";
   const chatMessagesRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -184,25 +189,27 @@ export default function AIAssistant({ analysis, initialRole = "patient" }) {
     }
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      scrollToBottom();
-    }
-  }, [messages, isOpen, loading]);
-
-  const handleOpen = () => {
-    setIsOpen(true);
+  const initializeGreeting = () => {
     if (messages.length === 0) {
       const detectedCount = analysis?.detected_findings?.length || 0;
       const detectedList = analysis?.detected_findings?.join(", ") || "none";
-      const greeting =
-        detectedCount > 0
-          ? `Hello! I have loaded the clinical context for this **${analysis?.view || "Frontal"}** chest radiograph (**${formatCaseId(analysis?.analysis_id)}**).\n\n` +
-            `### Active Radiographic Findings:\n` +
-            `* **${detectedCount} finding(s) detected above threshold:** ${detectedList}\n\n` +
-            `You can ask me to explain what these findings mean, review visual Grad-CAM focus areas, or suggest questions to discuss with your healthcare provider.`
-          : `Hello! I have loaded the clinical context for this **${analysis?.view || "Frontal"}** chest radiograph (**${formatCaseId(analysis?.analysis_id)}**).\n\n` +
-            `No acute findings were detected above operating thresholds. What questions can I answer about the evaluated thoracic conditions or report summary?`;
+
+      let greeting = "";
+      if (isProf) {
+        greeting =
+          `Clinical Decision Support active for **${analysis?.view || "Frontal"}** radiograph (**${formatCaseId(analysis?.analysis_id)}**).\n\n` +
+          (detectedCount > 0
+            ? `* **Findings exceeding operating threshold:** ${detectedList}\n\n`
+            : `* **Study Evaluation:** 0 of 5 evaluated acute findings exceeded operating thresholds.\n\n`) +
+          `Query DenseNet121 model outputs, view-specific operating thresholds, or Grad-CAM spatial activation.`;
+      } else {
+        greeting =
+          `Hello! I already have your analysis, findings and visual explanation for this **${analysis?.view || "Frontal"}** radiograph (**${formatCaseId(analysis?.analysis_id)}**).\n\n` +
+          (detectedCount > 0
+            ? `* **Findings flagged for attention:** ${detectedList}\n\n`
+            : `* **Findings:** No conditions flagged above operating thresholds on this projection.\n\n`) +
+          `Ask me anything about this result, the highlighted regions, or questions to discuss with your healthcare provider.`;
+      }
 
       setMessages([
         {
@@ -216,11 +223,47 @@ export default function AIAssistant({ analysis, initialRole = "patient" }) {
     }
   };
 
-  const handleSend = async (e) => {
-    if (e) e.preventDefault();
-    if (!inputQuestion.trim() || loading) return;
+  // Sync external open trigger
+  useEffect(() => {
+    if (externalOpen) {
+      setIsOpen(true);
+      initializeGreeting();
+    }
+  }, [externalOpen]);
 
-    const userText = inputQuestion.trim();
+  // Sync initial prefilled prompt if provided externally
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim()) {
+      setInputQuestion(initialPrompt);
+      setIsOpen(true);
+      initializeGreeting();
+    }
+  }, [initialPrompt]);
+
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom();
+    }
+  }, [messages, isOpen, loading]);
+
+  const handleOpen = () => {
+    setIsOpen(true);
+    initializeGreeting();
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    if (onCloseExternal) {
+      onCloseExternal();
+    }
+  };
+
+  const handleSend = async (e, textToSend = null) => {
+    if (e) e.preventDefault();
+    const query = textToSend !== null ? textToSend : inputQuestion;
+    if (!query || !query.trim() || loading) return;
+
+    const userText = query.trim();
     setInputQuestion("");
     setError("");
 
@@ -261,7 +304,7 @@ export default function AIAssistant({ analysis, initialRole = "patient" }) {
   };
 
   const handleSuggestionClick = (questionText) => {
-    setInputQuestion(questionText);
+    handleSend(null, questionText);
   };
 
   return (
@@ -272,13 +315,15 @@ export default function AIAssistant({ analysis, initialRole = "patient" }) {
           type="button"
           className="floating-ai-launcher"
           onClick={handleOpen}
-          title="Open AI Clinical Assistant"
+          title={isProf ? "Open Clinical Decision Support Assistant" : "Open AI Assistant"}
           aria-expanded="false"
         >
           <div className="launcher-icon-badge">
             <Sparkles size={16} />
           </div>
-          <span className="launcher-text">Ask about this X-ray</span>
+          <span className="launcher-text">
+            {isProf ? "Clinical Case Assistant" : "Ask about this X-ray"}
+          </span>
           <span className="launcher-case-pill">{formatCaseId(analysis?.analysis_id)}</span>
         </button>
       )}
@@ -291,46 +336,25 @@ export default function AIAssistant({ analysis, initialRole = "patient" }) {
             <div className="panel-header-title-block">
               <div className="ai-status-indicator">
                 <span className="ai-live-pulse" />
-                <Sparkles size={15} color="var(--accent-primary)" />
+                {isProf ? <Stethoscope size={15} color="var(--accent-primary)" /> : <Sparkles size={15} color="var(--accent-primary)" />}
               </div>
               <div>
-                <h3 className="panel-title">AI Clinical Assistant</h3>
-                <span className="panel-subtitle">Context Linked • {formatCaseId(analysis?.analysis_id)}</span>
+                <h3 className="panel-title">{isProf ? "Clinical Decision Support Assistant" : "Ask about your X-ray"}</h3>
+                <span className="panel-subtitle">
+                  {isProf ? "Professional Clinical Context" : "Patient-Centred Explanation"} • {formatCaseId(analysis?.analysis_id)}
+                </span>
               </div>
             </div>
 
             <button
               type="button"
               className="panel-close-btn"
-              onClick={() => setIsOpen(false)}
+              onClick={handleClose}
               aria-label="Minimize AI Assistant"
               title="Minimize panel"
             >
               <X size={16} />
             </button>
-          </div>
-
-          {/* Role Mode Selector Toolbar */}
-          <div className="panel-mode-bar">
-            <span className="mode-label">Audience Mode:</span>
-            <div className="mode-toggle-group">
-              <button
-                type="button"
-                className={`btn-mode-toggle ${role === "patient" ? "active" : ""}`}
-                onClick={() => setRole("patient")}
-              >
-                <User size={12} />
-                <span>Patient</span>
-              </button>
-              <button
-                type="button"
-                className={`btn-mode-toggle ${role === "professional" ? "active" : ""}`}
-                onClick={() => setRole("professional")}
-              >
-                <Stethoscope size={12} />
-                <span>Physician</span>
-              </button>
-            </div>
           </div>
 
           {/* Chat Message Scroll Thread */}
@@ -374,10 +398,10 @@ export default function AIAssistant({ analysis, initialRole = "patient" }) {
             )}
           </div>
 
-          {/* Suggested Quick Question Prompts */}
+          {/* Suggested Contextual Starter Questions */}
           <div className="floating-suggestions-strip">
             <div className="suggestions-scroll">
-              {role === "professional" ? (
+              {isProf ? (
                 <>
                   <button
                     type="button"
@@ -396,6 +420,13 @@ export default function AIAssistant({ analysis, initialRole = "patient" }) {
                   <button
                     type="button"
                     className="suggestion-chip"
+                    onClick={() => handleSuggestionClick("What did the AI find on this radiograph?")}
+                  >
+                    Findings Breakdown
+                  </button>
+                  <button
+                    type="button"
+                    className="suggestion-chip"
                     onClick={() => handleSuggestionClick("What are the clinical limitations of this AI prediction?")}
                   >
                     Model Limitations
@@ -406,23 +437,37 @@ export default function AIAssistant({ analysis, initialRole = "patient" }) {
                   <button
                     type="button"
                     className="suggestion-chip"
-                    onClick={() => handleSuggestionClick("Explain my chest X-ray report in simple terms.")}
+                    onClick={() => handleSuggestionClick("What did the AI find?")}
                   >
-                    Explain findings simply
+                    What did the AI find?
                   </button>
                   <button
                     type="button"
                     className="suggestion-chip"
-                    onClick={() => handleSuggestionClick("What does the highlighted region on my scan mean?")}
+                    onClick={() => handleSuggestionClick("Why was this area highlighted?")}
                   >
-                    What does highlighted region mean?
+                    Why was this area highlighted?
                   </button>
                   <button
                     type="button"
                     className="suggestion-chip"
-                    onClick={() => handleSuggestionClick("What questions should I ask my doctor about these results?")}
+                    onClick={() => handleSuggestionClick("What does this finding mean?")}
                   >
-                    Questions for my doctor
+                    What does this finding mean?
+                  </button>
+                  <button
+                    type="button"
+                    className="suggestion-chip"
+                    onClick={() => handleSuggestionClick("Why did the AI flag this?")}
+                  >
+                    Why did the AI flag this?
+                  </button>
+                  <button
+                    type="button"
+                    className="suggestion-chip"
+                    onClick={() => handleSuggestionClick("What should I ask my doctor?")}
+                  >
+                    What should I ask my doctor?
                   </button>
                 </>
               )}
@@ -437,7 +482,7 @@ export default function AIAssistant({ analysis, initialRole = "patient" }) {
           )}
 
           {/* Input Form */}
-          <form onSubmit={handleSend} className="floating-chat-form">
+          <form onSubmit={(e) => handleSend(e)} className="floating-chat-form">
             <input
               type="text"
               value={inputQuestion}

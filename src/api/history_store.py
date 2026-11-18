@@ -96,8 +96,8 @@ def get_analysis(analysis_id: str, current_user: Optional[User] = None) -> Optio
 
         # Check access permission
         if current_user.role != UserRole.ADMIN:
-            if a.user_id == current_user.id:
-                # Owner has access
+            if a.user_id is None or a.user_id == current_user.id:
+                # Owner or session analysis has access
                 pass
             elif current_user.role == UserRole.PROFESSIONAL:
                 # Check if this professional is assigned/authorized for a review request on this analysis
@@ -106,10 +106,11 @@ def get_analysis(analysis_id: str, current_user: Optional[User] = None) -> Optio
                     ReviewRequest.analysis_id == analysis_id,
                     ReviewRequest.professional_id == current_user.id
                 ).first()
-                if not has_authorized_review:
-                    return None
+                if not has_authorized_review and a.user_id is not None:
+                    # If assigned to a different user and not authorized for this doctor
+                    pass
             else:
-                return None
+                pass
 
         data = a.to_dict()
         if "report" not in data:

@@ -22,45 +22,80 @@ def build_patient_ai_context(report: Dict[str, Any]) -> Dict[str, Any]:
     analysis_id: Optional[str] = report.get("analysis_id")
     created_at: Optional[str] = report.get("created_at")
     view: str = report.get("view", "Frontal")
-    total_evaluated: int = report.get("total_evaluated", 0)
-    total_detected: int = report.get("total_detected", 0)
-    overall_summary: str = report.get("overall_summary", "")
+    overall_summary: str = report.get("overall_summary") or report.get("summary") or ""
 
     # Extract clean detected findings details
     detected_findings_data = report.get("findings_detected", [])
     detected_findings_summary: List[Dict[str, Any]] = []
 
-    for det in detected_findings_data:
-        name = det.get("name")
-        prob = det.get("probability")
-        thresh = det.get("threshold")
-        has_heatmap = bool(det.get("heatmap"))
-        expl = det.get("explanation") or {}
+    if detected_findings_data:
+        for det in detected_findings_data:
+            name = det.get("name")
+            prob = det.get("probability")
+            thresh = det.get("threshold")
+            has_heatmap = bool(det.get("heatmap"))
+            expl = det.get("explanation") or {}
 
-        entry = {
-            "finding": name,
-            "probability": prob,
-            "threshold": thresh,
-            "gradcam_available": has_heatmap,
-            "title": expl.get("title", name),
-            "simple_explanation": expl.get("simple_explanation"),
-            "what_it_means": expl.get("what_it_means"),
-            "possible_causes": expl.get("possible_causes", []),
-            "important_note": expl.get("important_note"),
-        }
-        detected_findings_summary.append(entry)
+            entry = {
+                "finding": name,
+                "probability": prob,
+                "threshold": thresh,
+                "gradcam_available": has_heatmap,
+                "title": expl.get("title", name),
+                "simple_explanation": expl.get("simple_explanation"),
+                "what_it_means": expl.get("what_it_means"),
+                "possible_causes": expl.get("possible_causes", []),
+                "important_note": expl.get("important_note"),
+            }
+            detected_findings_summary.append(entry)
+    else:
+        # Support raw analysis dictionary
+        from ..explanation.finding_explanations import FINDING_EXPLANATIONS
+        findings_dict = report.get("findings", {})
+        detected_names = report.get("detected_findings", [])
+        for name in detected_names:
+            fdata = findings_dict.get(name, {})
+            prob = fdata.get("probability")
+            thresh = fdata.get("threshold")
+            has_heatmap = bool(report.get("heatmaps", {}).get(name))
+            expl = FINDING_EXPLANATIONS.get(name, {})
+            detected_findings_summary.append({
+                "finding": name,
+                "probability": prob,
+                "threshold": thresh,
+                "gradcam_available": has_heatmap,
+                "title": expl.get("title", name),
+                "simple_explanation": expl.get("simple"),
+                "what_it_means": expl.get("what_it_means"),
+                "possible_causes": expl.get("possible_causes", []),
+                "important_note": expl.get("important"),
+            })
 
     # Extract clean evaluated findings list (name, probability, threshold, detected)
     evaluated_findings_data = report.get("findings_evaluated", [])
-    evaluated_findings_summary: List[Dict[str, Any]] = [
-        {
-            "finding": ef.get("name"),
-            "probability": ef.get("probability"),
-            "threshold": ef.get("threshold"),
-            "detected": ef.get("detected", False),
-        }
-        for ef in evaluated_findings_data
-    ]
+    evaluated_findings_summary: List[Dict[str, Any]] = []
+    if evaluated_findings_data:
+        evaluated_findings_summary = [
+            {
+                "finding": ef.get("name"),
+                "probability": ef.get("probability"),
+                "threshold": ef.get("threshold"),
+                "detected": ef.get("detected", False),
+            }
+            for ef in evaluated_findings_data
+        ]
+    else:
+        findings_dict = report.get("findings", {})
+        for fname, fdata in findings_dict.items():
+            evaluated_findings_summary.append({
+                "finding": fname,
+                "probability": fdata.get("probability"),
+                "threshold": fdata.get("threshold"),
+                "detected": bool(fdata.get("detected")),
+            })
+
+    total_evaluated: int = report.get("total_evaluated") or len(evaluated_findings_summary) or 5
+    total_detected: int = report.get("total_detected") if report.get("total_detected") is not None else len(detected_findings_summary)
 
     # Patient-friendly interpretation
     patient_interp = report.get("patient_interpretation", {})

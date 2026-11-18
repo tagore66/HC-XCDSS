@@ -32,7 +32,8 @@ export default function RequestReviewModal({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!analysis?.analysis_id) {
+    const targetAnalysisId = analysis?.analysis_id || analysis?.id;
+    if (!targetAnalysisId) {
       setError("Cannot request review: missing valid analysis ID.");
       return;
     }
@@ -42,7 +43,7 @@ export default function RequestReviewModal({
 
     try {
       const payload = {
-        analysis_id: analysis.analysis_id,
+        analysis_id: targetAnalysisId,
         patient_message: patientMessage.trim() || undefined,
         preferred_professional_id: selectedProfessional ? selectedProfessional.id : undefined,
       };

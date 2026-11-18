@@ -6,6 +6,7 @@ import {
   submitProfessionalAssessment,
 } from "../services/api";
 import ClinicalNotice from "./ClinicalNotice";
+import AIAssistant from "./AIAssistant";
 import {
   Stethoscope,
   ArrowLeft,
@@ -768,6 +769,14 @@ export default function ProfessionalCaseWorkspace({ reviewId, onBack, onWorkflow
             </div>
           </div>
         </div>
+      )}
+
+      {/* FLOATING CLINICAL AI ASSISTANT FOR PHYSICIAN */}
+      {caseData?.analysis?.analysis_id && (
+        <AIAssistant
+          analysis={caseData.analysis}
+          role="professional"
+        />
       )}
     </section>
   );

@@ -46,77 +46,80 @@ class GeminiLLMProvider(BaseLLMProvider):
         temperature: float = 0.2,
     ) -> Dict[str, Any]:
         """
-        Calls Gemini generateContent endpoint.
+        Calls Gemini generateContent endpoint with candidate fallback.
         """
         if not self.is_configured:
             raise ValueError(
                 "Gemini API key is not configured. Please set GEMINI_API_KEY in your environment."
             )
 
-        endpoint = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{self._model}:generateContent?key={self._api_key.strip()}"
-        )
+        candidate_models = [self._model]
+        for fallback in ["gemini-3.1-flash-lite", "gemini-3.7-flash"]:
+            if fallback not in candidate_models:
+                candidate_models.append(fallback)
 
-        # Build contents array from history + current prompt
-        contents = []
+        last_error = None
+        for model_name in candidate_models:
+            endpoint = (
+                f"https://generativelanguage.googleapis.com/v1beta/models/"
+                f"{model_name}:generateContent?key={self._api_key.strip()}"
+            )
 
-        if conversation_history:
-            for turn in conversation_history:
-                role = "user" if turn.get("role") in ["user", "patient", "professional"] else "model"
-                contents.append({
-                    "role": role,
-                    "parts": [{"text": turn.get("content", "")}]
-                })
+            # Build contents array from history + current prompt
+            contents = []
 
-        # Add current user prompt
-        contents.append({
-            "role": "user",
-            "parts": [{"text": prompt}]
-        })
+            if conversation_history:
+                for turn in conversation_history:
+                    role = "user" if turn.get("role") in ["user", "patient", "professional"] else "model"
+                    contents.append({
+                        "role": role,
+                        "parts": [{"text": turn.get("content", "")}]
+                    })
 
-        payload = {
-            "system_instruction": {
-                "parts": [{"text": system_instruction}]
-            },
-            "contents": contents,
-            "generationConfig": {
-                "temperature": temperature,
-                "maxOutputTokens": 1000,
-            }
-        }
+            # Add current user prompt
+            contents.append({
+                "role": "user",
+                "parts": [{"text": prompt}]
+            })
 
-        req = urllib.request.Request(
-            endpoint,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-
-        try:
-            with urllib.request.urlopen(req, timeout=30) as response:
-                res_body = response.read().decode("utf-8")
-                data = json.loads(res_body)
-
-                candidates = data.get("candidates", [])
-                if not candidates:
-                    raise RuntimeError("Gemini returned no candidates in response.")
-
-                parts = candidates[0].get("content", {}).get("parts", [])
-                answer_text = "".join(p.get("text", "") for p in parts).strip()
-
-                return {
-                    "text": answer_text,
-                    "provider": self.provider_name,
-                    "model": self.model_name,
+            payload = {
+                "system_instruction": {
+                    "parts": [{"text": system_instruction}]
+                },
+                "contents": contents,
+                "generationConfig": {
+                    "temperature": temperature,
+                    "maxOutputTokens": 1000,
                 }
-        except urllib.error.HTTPError as http_err:
+            }
+
+            req = urllib.request.Request(
+                endpoint,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+
             try:
-                err_detail = http_err.read().decode("utf-8")
-                err_json = json.loads(err_detail)
-                msg = err_json.get("error", {}).get("message", str(http_err))
-            except Exception:
-                msg = str(http_err)
-            raise RuntimeError(f"Gemini API HTTP Error ({http_err.code}): {msg}")
-        except Exception as e:
-            raise RuntimeError(f"Gemini generation failed: {str(e)}")
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    res_body = response.read().decode("utf-8")
+                    data = json.loads(res_body)
+
+                    candidates = data.get("candidates", [])
+                    if not candidates:
+                        continue
+
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    answer_text = "".join(p.get("text", "") for p in parts).strip()
+
+                    if answer_text:
+                        return {
+                            "text": answer_text,
+                            "provider": self.provider_name,
+                            "model": model_name,
+                        }
+            except Exception as e:
+                last_error = e
+                continue
+
+        raise RuntimeError(f"Gemini generation failed across candidate models: {str(last_error)}")

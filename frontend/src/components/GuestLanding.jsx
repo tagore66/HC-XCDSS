@@ -74,14 +74,14 @@ const signatureSteps = [
     step: "01",
     phase: "REAL CHEST X-RAY",
     title: "Raw Radiograph Ingestion",
-    caption: "Frontal PA projection calibrated with DICOM-grade exposure verification.",
+    caption: "Frontal PA projection standardized with DICOM-grade exposure verification.",
     defaultCamOpacity: 0.0,
     showScanLine: false,
     showRoi: false,
     activeLayer: "DICOM Input Viewport",
     stageStatus: "Baseline Anatomy Verified",
     narrative:
-      "Input frontal chest radiograph (PA projection) loaded at full dynamic range. Automated preprocessing calibrates thoracic orientation, contrast balance, and anatomical boundary markers.",
+      "Input frontal chest radiograph (PA projection) loaded at full dynamic range. Automated preprocessing standardizes thoracic orientation, contrast balance, and anatomical boundary markers.",
   },
   {
     step: "02",
@@ -126,14 +126,14 @@ const signatureSteps = [
     step: "05",
     phase: "STRUCTURED FINDING",
     title: "Deterministic Clinical Classification",
-    caption: "Calibrated probability distribution across all 5 target cardiopulmonary conditions.",
+    caption: "Model output distribution evaluated against operating thresholds for all 5 target conditions.",
     defaultCamOpacity: 0.85,
     showScanLine: false,
     showRoi: true,
-    activeLayer: "Calibrated Diagnostic Engine",
+    activeLayer: "Diagnostic Decision Engine",
     stageStatus: "Finding Classified & Scored",
     narrative:
-      "Multi-label predictions are deterministically calibrated against validation thresholds. The system outputs quantitative probability scores, primary diagnostic finding, and anatomical localization metadata.",
+      "Multi-label predictions are evaluated against operating thresholds selected during validation. The system outputs quantitative model scores, primary diagnostic finding, and anatomical localization metadata.",
   },
   {
     step: "06",
@@ -597,7 +597,7 @@ export default function GuestLanding({ onOpenAuth, currentUser }) {
                         ? "Pre-Inference Baseline"
                         : signatureStep === 1
                         ? "Inference Sweeping..."
-                        : "Calibrated Output"}
+                        : "Evaluated Model Output"}
                     </span>
                   </div>
 

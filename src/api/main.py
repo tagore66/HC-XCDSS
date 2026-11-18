@@ -206,6 +206,14 @@ app = FastAPI(
 DEFAULT_CORS_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "http://localhost:5175",
+    "http://127.0.0.1:5175",
+    "http://localhost:5176",
+    "http://127.0.0.1:5176",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
 
 
@@ -226,6 +234,7 @@ def get_cors_origins() -> List[str]:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_cors_origins(),
+    allow_origin_regex=r"^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -2221,33 +2230,38 @@ def ask_ai_assistant(
 
     # 3. Retrieve or create Conversation thread
     conversation = None
-    if payload.conversation_id:
-        conversation = db.query(Conversation).filter(
-            Conversation.id == payload.conversation_id,
-            Conversation.analysis_id == analysis_id
-        ).first()
+    try:
+        if payload.conversation_id:
+            conversation = db.query(Conversation).filter(
+                Conversation.id == payload.conversation_id,
+                Conversation.analysis_id == analysis_id
+            ).first()
 
-    if not conversation:
-        # Check if user already has an active conversation for this analysis
-        conversation = db.query(Conversation).filter(
-            Conversation.analysis_id == analysis_id,
-            Conversation.user_id == current_user.id,
-            Conversation.role == effective_role
-        ).first()
+        if not conversation:
+            # Check if user already has an active conversation for this analysis
+            conversation = db.query(Conversation).filter(
+                Conversation.analysis_id == analysis_id,
+                Conversation.user_id == current_user.id,
+                Conversation.role == effective_role
+            ).first()
 
-    if not conversation:
-        conversation = Conversation(
-            analysis_id=analysis_id,
-            user_id=current_user.id,
-            role=effective_role,
-        )
-        db.add(conversation)
-        db.commit()
-        db.refresh(conversation)
+        if not conversation:
+            conversation = Conversation(
+                analysis_id=analysis_id,
+                user_id=current_user.id,
+                role=effective_role,
+            )
+            db.add(conversation)
+            db.commit()
+            db.refresh(conversation)
+    except Exception as conv_err:
+        db.rollback()
+        conversation = None
+        print(f"Conversation initialization note: {conv_err}")
 
     # 4. Load Conversation History
     history_turns: List[Dict[str, str]] = []
-    if conversation.messages:
+    if conversation and conversation.messages:
         for msg in conversation.messages:
             history_turns.append({
                 "role": "user" if msg.sender in ["user", "patient", "professional"] else "model",
@@ -2269,30 +2283,30 @@ def ask_ai_assistant(
     )
 
     # 6. Persist User Message & Model Response in Conversation Thread
-    try:
-        user_msg = ConversationMessage(
-            conversation_id=conversation.id,
-            sender="user",
-            content=payload.message.strip(),
-        )
-        db.add(user_msg)
+    if conversation:
+        try:
+            user_msg = ConversationMessage(
+                conversation_id=conversation.id,
+                sender="user",
+                content=payload.message.strip(),
+            )
+            db.add(user_msg)
 
-        ai_msg = ConversationMessage(
-            conversation_id=conversation.id,
-            sender="model",
-            content=response_dict["answer"],
-            provider=response_dict.get("provider"),
-            model=response_dict.get("model"),
-            safety_status=response_dict.get("safety_status", "ok"),
-        )
-        db.add(ai_msg)
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        # Non-fatal persistence logging to avoid failing the user request
-        print(f"Conversation persistence warning: {e}")
+            ai_msg = ConversationMessage(
+                conversation_id=conversation.id,
+                sender="model",
+                content=response_dict["answer"],
+                provider=response_dict.get("provider"),
+                model=response_dict.get("model"),
+                safety_status=response_dict.get("safety_status", "ok"),
+            )
+            db.add(ai_msg)
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            print(f"Conversation persistence warning: {e}")
 
-    response_dict["conversation_id"] = conversation.id
+    response_dict["conversation_id"] = conversation.id if conversation else None
     response_dict["role"] = effective_role
     return response_dict
 

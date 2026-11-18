@@ -4,26 +4,26 @@ import {
   CheckCircle2,
   ChevronRight,
   Eye,
-  Sliders,
-  Sparkles,
+  Info,
 } from "lucide-react";
+import { CLINICAL_FINDING_DEFINITIONS } from "./PatientExplanations";
 
 /**
- * Format decimal probability value to percentage string.
+ * Format decimal probability value to a 3-decimal string representation (e.g. 0.805).
  */
-function percentage(value) {
+function formatScore(value) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) {
     return "—";
   }
-  return `${(Number(value) * 100).toFixed(1)}%`;
+  return Number(value).toFixed(3);
 }
 
 /**
  * FindingsGrid component.
  * 
- * Strict Visual Hierarchy:
- * 1. Detected Findings: High-contrast amber attention card with prominent confidence and direct viewport trigger.
- * 2. Not Detected Findings: Compact neutral slate rows for rapid clinical scanning.
+ * Implements the requested patient-journey structure:
+ * - Flagged findings with: What it means, Where the AI focused, Why the highlighted area matters.
+ * - What was not flagged section.
  */
 export default function FindingsGrid({ findings, view, selectedFinding, onSelectFinding }) {
   const findingEntries = Object.entries(findings || {});
@@ -41,25 +41,25 @@ export default function FindingsGrid({ findings, view, selectedFinding, onSelect
       <div className="findings-panel-header">
         <div>
           <div className="eyebrow" style={{ color: "var(--accent-primary)" }}>
-            DENSENET121 INFERENCE
+            WHAT DID THE AI FIND?
           </div>
-          <h3 className="findings-panel-title">Radiographic Findings</h3>
+          <h3 className="findings-panel-title">
+            {detectedEntries.length > 0
+              ? `${detectedEntries.length} finding${detectedEntries.length > 1 ? "s" : ""} need attention`
+              : "No findings flagged for attention"}
+          </h3>
         </div>
-        <span className="findings-view-badge">{view} View Thresholds</span>
+        <span className="findings-view-badge">{view} Projection</span>
       </div>
 
-      {/* SECTION A: DETECTED FINDINGS (PROMINENT AMBER ATTENTION CARDS) */}
+      {/* SECTION A: FLAGGED FINDINGS (EACH WITH: WHAT IT MEANS, WHERE AI FOCUSED, WHY IT MATTERS) */}
       {detectedEntries.length > 0 ? (
         <div className="detected-findings-group">
-          <div className="detected-group-label">
-            <span className="amber-dot" />
-            <span>ACUTE FINDINGS DETECTED ({detectedEntries.length})</span>
-          </div>
-
           {detectedEntries.map(([finding, data]) => {
             const isSelected = selectedFinding === finding;
             const probNum = Number(data.probability) || 0;
             const threshNum = Number(data.threshold) || 0.5;
+            const def = CLINICAL_FINDING_DEFINITIONS[finding];
 
             return (
               <div
@@ -67,39 +67,56 @@ export default function FindingsGrid({ findings, view, selectedFinding, onSelect
                 className={`detected-finding-card ${isSelected ? "active-in-viewport" : ""}`}
                 onClick={() => onSelectFinding && onSelectFinding(finding)}
               >
+                {/* Card Top Title & Secondary Scores */}
                 <div className="detected-card-top">
                   <div className="detected-title-wrap">
+                    <div className="detected-badge-line">
+                      <span className="badge-detected-amber">AI FLAGGED</span>
+                    </div>
                     <h4 className="detected-finding-name">{finding}</h4>
-                    <span className="badge-detected-amber">DETECTED</span>
                   </div>
 
-                  <div className="detected-confidence-display">
-                    <span className="detected-prob-val">{percentage(probNum)}</span>
-                    <span className="detected-prob-label">confidence</span>
+                  {/* Secondary Subtle Numerical Score Block */}
+                  <div className="detected-secondary-scores">
+                    <div className="score-pill">
+                      <span className="score-pill-label">Model output:</span>
+                      <span className="score-pill-val">{formatScore(probNum)}</span>
+                    </div>
+                    <div className="score-pill threshold-pill">
+                      <span className="score-pill-label">Operating threshold:</span>
+                      <span className="score-pill-val">{formatScore(threshNum)}</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Progress bar with calibrated threshold tick */}
-                <div className="detected-progress-container">
-                  <div className="detected-progress-bar">
-                    <div
-                      className="detected-progress-fill"
-                      style={{ width: `${Math.min(probNum * 100, 100)}%` }}
-                    />
-                    <div
-                      className="detected-threshold-line"
-                      style={{ left: `${Math.min(threshNum * 100, 100)}%` }}
-                      title={`Detection operating threshold: ${percentage(threshNum)}`}
-                    />
+                {/* THE 3 PATIENT-FIRST EXPLANATION FACETS */}
+                <div className="finding-triad-block">
+                  {/* 1. What it means */}
+                  <div className="triad-item">
+                    <span className="triad-label">What it means</span>
+                    <p className="triad-text">
+                      {def?.simple_explanation || "A pattern matching this condition was identified by the AI on the radiograph."}
+                    </p>
                   </div>
-                  <div className="detected-progress-labels">
-                    <span>Baseline 0%</span>
-                    <span>Threshold: <strong>{percentage(threshNum)}</strong></span>
-                    <span>100%</span>
+
+                  {/* 2. Where the AI focused */}
+                  <div className="triad-item">
+                    <span className="triad-label">Where the AI focused</span>
+                    <p className="triad-text">
+                      This shows where the AI model focused when producing this finding. Look at the diagnostic viewport to inspect the highlighted region.
+                    </p>
+                  </div>
+
+                  {/* 3. Why the highlighted area matters */}
+                  <div className="triad-item">
+                    <span className="triad-label">Why the highlighted area matters</span>
+                    <p className="triad-text">
+                      The highlighted area represents model attention. It is not a disease boundary, segmentation, or proof that disease is present.
+                    </p>
                   </div>
                 </div>
 
-                {/* Action trigger to focus viewport */}
+                {/* Focus trigger */}
                 <div className="detected-card-actions">
                   <button
                     type="button"
@@ -110,7 +127,7 @@ export default function FindingsGrid({ findings, view, selectedFinding, onSelect
                     }}
                   >
                     <Eye size={13} />
-                    <span>{isSelected ? "Active in Diagnostic Viewport" : "View model attention →"}</span>
+                    <span>{isSelected ? "Active in Visual Viewport" : "Show AI focus area in viewport →"}</span>
                   </button>
                 </div>
               </div>
@@ -120,16 +137,16 @@ export default function FindingsGrid({ findings, view, selectedFinding, onSelect
       ) : (
         <div className="no-detected-banner">
           <CheckCircle2 size={16} color="var(--color-success)" />
-          <span>No acute radiographic abnormalities detected above operating thresholds.</span>
+          <span>No findings were flagged above operating thresholds on this projection.</span>
         </div>
       )}
 
-      {/* SECTION B: NOT DETECTED FINDINGS (COMPACT NEUTRAL SCAN ROWS) */}
+      {/* SECTION B: WHAT WAS NOT FLAGGED? */}
       {notDetectedEntries.length > 0 && (
         <div className="not-detected-findings-group">
           <div className="not-detected-group-header">
-            <span>UNREMARKABLE / NOT DETECTED ({notDetectedEntries.length})</span>
-            <span className="compact-note">Click row to inspect</span>
+            <span>WHAT WAS NOT FLAGGED? ({notDetectedEntries.length} FINDINGS)</span>
+            <span className="compact-note">No prominent model signal detected</span>
           </div>
 
           <div className="not-detected-table">
@@ -147,15 +164,19 @@ export default function FindingsGrid({ findings, view, selectedFinding, onSelect
                 >
                   <div className="row-left">
                     <span className="row-finding-name">{finding}</span>
+                    <span className="row-finding-sub">No prominent model signal was detected for this finding on this view.</span>
                   </div>
 
                   <div className="row-middle">
-                    <span className="badge-not-detected">NOT DETECTED</span>
+                    <span className="badge-not-detected">NOT FLAGGED BY THE AI</span>
                   </div>
 
                   <div className="row-right">
-                    <span className="row-prob-text">{percentage(probNum)}</span>
-                    <span className="row-thresh-text">(Thresh {percentage(threshNum)})</span>
+                    <div className="row-subtle-scores">
+                      <span>Output: {formatScore(probNum)}</span>
+                      <span className="score-sep">•</span>
+                      <span>Threshold: {formatScore(threshNum)}</span>
+                    </div>
                     <ChevronRight size={13} className="row-chevron" />
                   </div>
                 </div>

@@ -150,15 +150,37 @@ export default function Header({
 
             {currentUser.role === "PROFESSIONAL" && (
               isProfessional ? (
-                <button
-                  type="button"
-                  className={`nav-link-btn pro-portal-btn ${activeScreen === "pro-dashboard" || activeScreen === "pro-review" ? "active" : ""}`}
-                  onClick={() => onNavigate("pro-dashboard")}
-                  disabled={loading}
-                >
-                  <Stethoscope size={14} />
-                  <span>Physician Portal</span>
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className={`nav-link-btn pro-portal-btn ${activeScreen === "pro-dashboard" || activeScreen === "pro-review" ? "active" : ""}`}
+                    onClick={() => onNavigate("pro-dashboard")}
+                    disabled={loading}
+                  >
+                    <Stethoscope size={14} />
+                    <span>Physician Portal</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`nav-link-btn ${activeScreen === "upload" || activeScreen === "result" ? "active" : ""}`}
+                    onClick={() => onNavigate("upload")}
+                    disabled={loading}
+                  >
+                    <Plus size={14} />
+                    <span>New Analysis</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`nav-link-btn ${activeScreen === "history" ? "active" : ""}`}
+                    onClick={() => onNavigate("history")}
+                    disabled={loading}
+                  >
+                    <Clock size={14} />
+                    <span>My History</span>
+                  </button>
+                </>
               ) : (
                 <button
                   type="button"
